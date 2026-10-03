@@ -53,10 +53,23 @@
 /* Mobile Fix: Remove max-width restriction on small screens */
 @media (max-width: 600px) {
   .MovieCard {
-    max-width: none; /* Allows cards to shrink/grow fluidly inside the 2-column grid */
+    max-width: 100% !important; /* Removes the 230px cap on mobile */
+    width: 100% !important;
+  }
+
+  .who h2 {
+    font-size: 0.85rem; /* Scales down title text so it fits 2-column cards */
+  }
+
+  .card-footer {
+    padding: 4px;
+  }
+
+  .card-footer button {
+    font-size: 0.75rem;
+    padding: 4px 6px;
   }
 }
-
 /* Hover Overlay Badge */
 .details-overlay {
   position: absolute;

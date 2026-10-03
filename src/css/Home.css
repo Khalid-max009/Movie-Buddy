@@ -47,25 +47,24 @@
   transform: translateY(-1px);
 }
 
-/* Movie Grid Layout */
+/* Base Grid for Desktop */
 .movies-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+  grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
   gap: 1rem;
-  padding: 1rem 0;
+  padding: 1rem;
   width: 100%;
   box-sizing: border-box;
 }
 
-/* Mobile 2-Column Grid Fix */
+/* Force 2 Columns on Mobile Screens */
 @media (max-width: 600px) {
   .movies-grid {
-    grid-template-columns: repeat(2, 1fr); /* Forces exactly 2 cards per row on mobile */
-    gap: 0.75rem;
-    padding: 0.5rem 0;
+    grid-template-columns: repeat(2, 1fr) !important; /* Forces exactly 2 columns */
+    gap: 0.5rem !important;                            /* Tight gap like 9JAROCKS */
+    padding: 0.5rem !important;
   }
-}
-/* Feedback Statements */
+}/* Feedback Statements */
 .loading-message,
 .error-message,
 .no-results {
