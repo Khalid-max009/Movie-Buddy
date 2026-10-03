@@ -48,13 +48,23 @@
 }
 
 /* Movie Grid Layout */
-.movie-grid {
+.movies-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
-  gap: 1.25rem;
-  padding: 1rem;
+  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+  gap: 1rem;
+  padding: 1rem 0;
+  width: 100%;
+  box-sizing: border-box;
 }
 
+/* Mobile 2-Column Grid Fix */
+@media (max-width: 600px) {
+  .movies-grid {
+    grid-template-columns: repeat(2, 1fr); /* Forces exactly 2 cards per row on mobile */
+    gap: 0.75rem;
+    padding: 0.5rem 0;
+  }
+}
 /* Feedback Statements */
 .loading-message,
 .error-message,
@@ -103,16 +113,19 @@
   overflow-x: auto;
   
   /* SPACING ADJUSTMENTS */
-  margin-top: 24px;       /* Pushes the pills down away from the search bar */
-  margin-bottom: 28px;    /* Pushes the movie grid down away from the pills */
-  padding: 8px 4px 12px 4px; /* Internal padding so active pill shadows aren't clipped */
+  margin-top: 24px;       
+  margin-bottom: 28px;    
+  padding: 8px 4px 12px 4px; 
   
   /* SMOOTH SCROLLING & CUSTOM SCROLLBAR */
   scroll-behavior: smooth;
-  scrollbar-width: thin;  /* For Firefox: slim scrollbar */
+  scrollbar-width: thin;  
   scrollbar-color: #333 transparent;
-}
 
+  /* ADD THESE TWO LINES FOR MOBILE: */
+  -webkit-overflow-scrolling: touch; /* Momentum scrolling on iOS Safari */
+  width: 100%;                       /* Prevents container from stretching past screen width */
+}
 /* Chrome / Safari / Edge Custom Scrollbar */
 .genre-container::-webkit-scrollbar {
   height: 6px; /* Makes the horizontal scrollbar super sleek */

@@ -2,7 +2,7 @@
   display: flex;
   flex-direction: column;
   width: 100%;
-  max-width: 230px;
+  max-width: 230px; /* Kept for desktop so cards don't blow up too large */
   background-color: #0f172a;
   border-radius: 12px;
   overflow: hidden;
@@ -48,6 +48,13 @@
 .MovieCard:hover img {
   transform: scale(1.05);
   filter: brightness(0.8);
+}
+
+/* Mobile Fix: Remove max-width restriction on small screens */
+@media (max-width: 600px) {
+  .MovieCard {
+    max-width: none; /* Allows cards to shrink/grow fluidly inside the 2-column grid */
+  }
 }
 
 /* Hover Overlay Badge */
@@ -309,4 +316,16 @@
 
 .recommendations-section {
   padding: 30px 20px;
+}
+
+/* Make action buttons and title readable on mobile cards */
+@media (max-width: 600px) {
+  .who h2 {
+    font-size: 0.95rem;
+  }
+
+  .card-footer button {
+    font-size: 0.8rem;
+    padding: 6px 10px;
+  }
 }

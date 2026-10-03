@@ -90,16 +90,28 @@
   border-color: var(--accent-color);
   transform: scale(1.05);
 }
-@media (max-width: 768px) {
-  .navbar {
+@media (max-width: 600px) {
+  .navBar {
     flex-direction: column;
     gap: 0.75rem;
     padding: 0.75rem 1rem;
+    text-align: center;
+  }
+
+  .nav-brand .brand-link {
+    font-size: 1.25rem;
+    gap: 8px;
+  }
+
+  .navbar-logo {
+    height: 32px;
   }
 
   .nav-links {
     width: 100%;
     justify-content: center;
-    gap: 1rem;
+    gap: 1.2rem;
+    font-size: 0.95rem;
+    flex-wrap: wrap;
   }
 }
