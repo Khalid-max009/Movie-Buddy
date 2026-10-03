@@ -1,7 +1,7 @@
 import { NavLink } from "react-router-dom";
 import MovieIcon from "../components/MovieIcon";
 import { useMovieContext } from "../contexts/MovieContext";
-import "../css/NavBar.css";
+import "../css/Navbar.css";
 
 function NavBar() {
   const { theme, toggleTheme } = useMovieContext();
