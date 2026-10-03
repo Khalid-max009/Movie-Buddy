@@ -1,0 +1,198 @@
+.home-container {
+  padding: 20px;
+  max-width: 1280px;
+  margin: 0 auto;
+  min-height: calc(100vh - 80px);
+}
+
+/* Search Bar Styling */
+.search-form {
+  display: flex;
+  justify-content: center;
+  gap: 12px;
+  margin: 20px auto 36px;
+  max-width: 550px;
+  padding: 0 10px;
+}
+
+.search-input {
+  flex: 1;
+  padding: 12px 20px;
+  background-color: #1e293b;
+  border: 1px solid #334155;
+  border-radius: 25px;
+  color: #ffffff;
+  font-size: 15px;
+  outline: none;
+  transition: border-color 0.2s ease;
+}
+
+.search-input:focus {
+  border-color: #e50914; /* Red accent matching Netflix dark theme */
+}
+
+.search-button {
+  padding: 12px 24px;
+  background-color: #e50914;
+  color: #ffffff;
+  border: none;
+  border-radius: 25px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background-color 0.2s ease, transform 0.1s ease;
+}
+
+.search-button:hover {
+  background-color: #b80710;
+  transform: translateY(-1px);
+}
+
+/* Movie Grid Layout */
+.movies-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+  gap: 24px;
+  width: 100%;
+}
+
+/* Feedback Statements */
+.loading-message,
+.error-message,
+.no-results {
+  text-align: center;
+  margin: 30px 0;
+  font-size: 1.1rem;
+  color: #94a3b8;
+}
+
+.error-message {
+  color: #ef4444;
+}
+
+/* Load More Section */
+.load-more-container {
+  display: flex;
+  justify-content: center;
+  margin: 40px 0 20px;
+}
+
+.load-more-btn {
+  background-color: #e50914;
+  color: #ffffff;
+  border: none;
+  padding: 12px 32px;
+  font-size: 1rem;
+  font-weight: 600;
+  border-radius: 25px;
+  cursor: pointer;
+  transition: transform 0.2s ease, background-color 0.2s ease;
+  box-shadow: 0 4px 12px rgba(229, 9, 20, 0.4);
+}
+
+.load-more-btn:hover {
+  background-color: #b80710;
+  transform: translateY(-2px);
+}
+
+.load-more-btn:active {
+  transform: translateY(0);
+}
+.genre-container {
+  display: flex;
+  gap: 12px;
+  overflow-x: auto;
+  
+  /* SPACING ADJUSTMENTS */
+  margin-top: 24px;       /* Pushes the pills down away from the search bar */
+  margin-bottom: 28px;    /* Pushes the movie grid down away from the pills */
+  padding: 8px 4px 12px 4px; /* Internal padding so active pill shadows aren't clipped */
+  
+  /* SMOOTH SCROLLING & CUSTOM SCROLLBAR */
+  scroll-behavior: smooth;
+  scrollbar-width: thin;  /* For Firefox: slim scrollbar */
+  scrollbar-color: #333 transparent;
+}
+
+/* Chrome / Safari / Edge Custom Scrollbar */
+.genre-container::-webkit-scrollbar {
+  height: 6px; /* Makes the horizontal scrollbar super sleek */
+}
+
+.genre-container::-webkit-scrollbar-track {
+  background: transparent; /* Removes white/grey track background */
+}
+
+.genre-container::-webkit-scrollbar-thumb {
+  background-color: #333; /* Dark grey thumb that blends with the theme */
+  border-radius: 10px;
+}
+
+.genre-container::-webkit-scrollbar-thumb:hover {
+  background-color: #e50914; /* Turns red when hovered */
+}
+
+.genre-pill {
+  background-color: #1a1a1a;
+  color: #e5e5e5;
+  border: 1px solid #333;
+  padding: 8px 16px;
+  border-radius: 20px;
+  font-size: 0.85rem;
+  font-weight: 500;
+  white-space: nowrap; /* Prevents text from wrapping */
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.genre-pill:hover {
+  background-color: #333;
+  color: #fff;
+}
+
+.genre-pill.active {
+  background-color: #e50914; /* Netflix Red */
+  color: #ffffff;
+  border-color: #e50914;
+}
+
+.search-form {
+  display: flex;
+  gap: 12px;
+  justify-content: center;
+  align-items: center;
+  margin-bottom: 1.5rem;
+  width: 100%;
+}
+
+.search-input-wrapper {
+  position: relative;
+  flex: 1;
+  max-width: 500px;
+  display: flex;
+  align-items: center;
+}
+
+.search-input-wrapper .search-input {
+  width: 100%;
+  padding-right: 38px; /* Space for the 'X' clear button */
+  box-sizing: border-box; /* Keeps padding inside the defined width */
+}
+
+.clear-search-btn {
+  position: absolute;
+  right: 12px;
+  background: transparent;
+  border: none;
+  color: var(--text-secondary);
+  font-size: 1.1rem;
+  cursor: pointer;
+  padding: 2px 6px;
+  line-height: 1;
+  border-radius: 50%;
+  transition: color 0.2s ease, background-color 0.2s ease;
+}
+
+.clear-search-btn:hover {
+  color: var(--accent-color);
+  background-color: var(--border-color);
+}

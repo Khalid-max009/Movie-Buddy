@@ -1,0 +1,39 @@
+.toast-container {
+  position: fixed;
+  bottom: 24px;
+  right: 24px;
+  padding: 12px 20px;
+  border-radius: 8px;
+  color: #ffffff;
+  font-size: 0.9rem;
+  font-weight: 600;
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.4);
+  z-index: 9999;
+  animation: slideIn 0.3s ease-out forwards;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+/* Success vs Info variants */
+.toast-container.success {
+  background-color: #10b981; /* Green */
+  border-left: 4px solid #059669;
+}
+
+.toast-container.info {
+  background-color: #ef4444; /* Red / Alert */
+  border-left: 4px solid #b91c1c;
+}
+
+/* Slide in animation */
+@keyframes slideIn {
+  from {
+    transform: translateY(100%);
+    opacity: 0;
+  }
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}

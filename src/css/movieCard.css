@@ -1,0 +1,312 @@
+.MovieCard {
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  max-width: 230px;
+  background-color: #0f172a;
+  border-radius: 12px;
+  overflow: hidden;
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.35);
+  transition: transform 0.25s ease, box-shadow 0.25s ease, border-color 0.25s ease;
+  border: 1px solid #1e293b;
+}
+
+.MovieCard:hover {
+  transform: translateY(-6px);
+  box-shadow: 0 12px 24px rgba(0, 0, 0, 0.55);
+  border-color: #334155;
+}
+
+.MovieCard.watched {
+  opacity: 0.85;
+  border-color: #10b981;
+}
+
+/* Poster Frame */
+.poster-container {
+  position: relative;
+  width: 100%;
+  aspect-ratio: 2 / 3;
+  overflow: hidden;
+  background-color: #020617;
+}
+
+.poster-link {
+  display: block;
+  width: 100%;
+  height: 100%;
+}
+
+.MovieCard img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+  transition: transform 0.4s ease, filter 0.3s ease;
+}
+
+.MovieCard:hover img {
+  transform: scale(1.05);
+  filter: brightness(0.8);
+}
+
+/* Hover Overlay Badge */
+.details-overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0, 0, 0, 0.4);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  opacity: 0;
+  transition: opacity 0.25s ease;
+  pointer-events: none;
+}
+
+.poster-link:hover .details-overlay {
+  opacity: 1;
+}
+
+.details-overlay span {
+  background: rgba(229, 9, 20, 0.9);
+  color: #ffffff;
+  padding: 6px 14px;
+  border-radius: 16px;
+  font-weight: 600;
+  font-size: 0.8rem;
+  letter-spacing: 0.5px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4);
+}
+
+/* Top Action Badges */
+.favorite-btn {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  background-color: rgba(15, 23, 42, 0.75);
+  color: #ffffff;
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  border-radius: 50%;
+  width: 32px;
+  height: 32px;
+  font-size: 15px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  backdrop-filter: blur(4px);
+  transition: all 0.2s ease;
+  z-index: 5;
+}
+
+.favorite-btn:hover {
+  background-color: #ef4444;
+  border-color: #ef4444;
+  transform: scale(1.1);
+}
+
+.favorite-btn.active {
+  background-color: #ef4444;
+  border-color: #ef4444;
+}
+
+.watchlist-btn {
+  position: absolute;
+  top: 10px;
+  left: 10px;
+  background: rgba(15, 23, 42, 0.75);
+  color: #ffffff;
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  padding: 5px 10px;
+  border-radius: 16px;
+  font-size: 11px;
+  font-weight: 600;
+  cursor: pointer;
+  backdrop-filter: blur(4px);
+  transition: all 0.2s ease;
+  z-index: 5;
+}
+
+.watchlist-btn:hover {
+  background: #3b82f6;
+  border-color: #3b82f6;
+}
+
+.watchlist-btn.active {
+  background: #3b82f6;
+  border-color: #3b82f6;
+}
+
+/* Info Section */
+.who {
+  display: flex;
+  flex-direction: column;
+  padding: 12px 12px 6px;
+  gap: 4px;
+  flex: 1;
+}
+
+.title-link {
+  text-decoration: none;
+  color: inherit;
+}
+
+.who h2 {
+  font-size: 0.95rem;
+  font-weight: 600;
+  margin: 0;
+  color: #f8fafc;
+  line-clamp: 2; /* Clears standard warning */
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  display: -webkit-box;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  line-height: 1.35;
+  text-align: center;
+}
+
+.title-link:hover h2 {
+  color: #e50914;
+}
+
+.release-year {
+  font-size: 0.8rem;
+  color: #64748b;
+  font-weight: 500;
+  text-align: center;
+}
+
+/* Card Bottom Buttons */
+.card-footer {
+  display: flex;
+  flex-direction: column;
+  padding: 0 12px 12px;
+  gap: 8px;
+}
+
+.status-btn {
+  width: 100%;
+  padding: 6px;
+  border-radius: 6px;
+  font-weight: 600;
+  font-size: 11px;
+  cursor: pointer;
+  border: none;
+  transition: background-color 0.2s ease;
+}
+
+.status-unwatched {
+  background-color: #1e293b;
+  color: #94a3b8;
+}
+
+.status-unwatched:hover {
+  background-color: #334155;
+  color: #f8fafc;
+}
+
+.status-watched {
+  background-color: #059669;
+  color: #ffffff;
+}
+
+.status-watched:hover {
+  background-color: #10b981;
+}
+
+/* Netflix Red Compact Play Button */
+.play-btn {
+  width: fit-content;
+  padding: 8px 12px;
+  background-color: #e50914;
+  color: #ffffff;
+  border-radius: 8px;
+  font-weight: 600;
+  font-size: 0.85rem;
+  border: none;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  transition: background-color 0.2s ease, transform 0.1s ease;
+  margin: 0 auto;
+}
+
+.play-btn:hover {
+  background-color: #b80710;
+  transform: translateY(-1px);
+}
+
+.play-btn:active {
+  transform: translateY(0);
+}
+
+.action-buttons-group {
+  display: flex;
+  gap: 12px;
+  margin-top: 16px;
+  flex-wrap: wrap;
+}
+
+.watchlist-btn {
+  background-color: #2a2a2a;
+  color: #fff;
+  border: 1px solid #444;
+  padding: 10px 18px;
+  border-radius: 8px;
+  cursor: pointer;
+  font-weight: 600;
+  transition: background-color 0.2s ease;
+}
+
+.watchlist-btn.active {
+  background-color: #0080ff;
+  border-color: #0080ff;
+}
+
+/* Cast Grid Styling */
+.cast-section {
+  padding: 30px 20px;
+}
+
+.cast-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(130px, 1fr));
+  gap: 16px;
+  margin-top: 16px;
+}
+
+.actor-card {
+  background-color: #181818;
+  border-radius: 8px;
+  overflow: hidden;
+  text-align: center;
+}
+
+.actor-card img {
+  width: 100%;
+  height: 180px;
+  object-fit: cover;
+}
+
+.actor-name {
+  font-weight: bold;
+  font-size: 0.85rem;
+  margin: 8px 4px 2px 4px;
+  color: #fff;
+}
+
+.character-name {
+  font-size: 0.75rem;
+  color: #aaa;
+  margin-bottom: 8px;
+}
+
+.recommendations-section {
+  padding: 30px 20px;
+}

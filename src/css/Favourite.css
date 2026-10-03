@@ -1,0 +1,38 @@
+/* Favourites Page Container */
+.Favourites-page {
+  padding: 30px 40px;
+  min-height: calc(100vh - 80px);
+}
+
+.page-title {
+  text-align: center;
+  margin-bottom: 24px;
+  color: #f8fafc;
+  font-size: 24px;
+  font-weight: 700;
+}
+
+/* Movie Grid Layout for Favourites */
+.movies-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+  gap: 24px;
+  width: 100%;
+}
+
+/* Empty State */
+.Favourites-empty {
+  text-align: center;
+  padding: 80px 20px;
+  color: #94a3b8;
+}
+
+.Favourites-empty h2 {
+  font-size: 24px;
+  color: #f1f5f9;
+  margin-bottom: 8px;
+}
+
+.Favourites-empty p {
+  font-size: 16px;
+}
