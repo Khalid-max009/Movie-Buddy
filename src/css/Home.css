@@ -48,11 +48,11 @@
 }
 
 /* Movie Grid Layout */
-.movies-grid {
+.movie-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
-  gap: 24px;
-  width: 100%;
+  grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+  gap: 1.25rem;
+  padding: 1rem;
 }
 
 /* Feedback Statements */
