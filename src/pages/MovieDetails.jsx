@@ -141,6 +141,22 @@ function MovieDetails() {
         </div>
       </div>
 
+      {/* NEW: Full Movie Online Streaming Section (Like 9jaRocks / Nkiri) */}
+      <div className="trailer-section streaming-player-section">
+        <h2>🎥 Watch Full Movie Online (HD Stream)</h2>
+        <div className="video-responsive">
+          <iframe
+            width="853"
+            height="480"
+            src={`https://vidsrc.me/embed/movie/${id}`}
+            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+            allowFullScreen
+            title="Full Movie Streaming Player"
+          />
+        </div>
+      </div>
+
+       
       {/* Trailer Section */}
       <div className="trailer-section">
         <h2>Official Trailer</h2>
