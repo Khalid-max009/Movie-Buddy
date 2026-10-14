@@ -1,9 +1,9 @@
 import { useMovieContext } from "../contexts/MovieContext";
 import "../css/movieCard.css";
-import { getMovieTrailer } from "../services/api";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 
-function MovieCard({ movie }) {
+function MovieCard({ movie, mediaType = "movie" }) {
+  const navigate = useNavigate();
   const { 
     favorites,
     isFavorite, 
@@ -21,6 +21,9 @@ function MovieCard({ movie }) {
   
   const watchlistMovie = watchlist.find((m) => m.id === movie.id);
   const isWatched = watchlistMovie ? watchlistMovie.watched : false;
+
+  // Use title for movies, name for TV series
+  const displayTitle = movie.title || movie.name;
 
   function onFavoriteClick(e) {
     e.preventDefault();
@@ -40,37 +43,26 @@ function MovieCard({ movie }) {
     toggleWatched(movie.id);
   }
 
-  async function handlePlay(e) {
+  function handlePlay(e) {
     e.preventDefault();
     e.stopPropagation();
-    try {
-      const videoKey = await getMovieTrailer(movie.id);
-      if (videoKey) {
-        window.open(`https://www.youtube.com/watch?v=${videoKey}`, "_blank");
-      } else {
-        window.open(
-          `https://www.youtube.com/results?search_query=${encodeURIComponent(
-            movie.title + " trailer"
-          )}`,
-          "_blank"
-        );
-      }
-    } catch (err) {
-      console.error("Error launching trailer:", err);
-    }
+    // Dynamically route based on media type if your app supports separate routes, 
+    // or pass the type as state/query param
+    const routePrefix = mediaType === "tv" ? "/tv" : "/movie";
+    navigate(`${routePrefix}/${movie.id}`);
   }
 
   return (
     <div className={`MovieCard ${isWatched ? "watched" : ""}`}>
       <div className="poster-container">
-        <Link to={`/movie/${movie.id}`} className="poster-link">
+        <Link to={`/${mediaType === "tv" ? "tv" : "movie"}/${movie.id}`} className="poster-link">
           <img
             src={
               movie.poster_path
                 ? `https://image.tmdb.org/t/p/w500${movie.poster_path}`
                 : "https://via.placeholder.com/500x750?text=No+Poster"
             }
-            alt={movie.title}
+            alt={displayTitle}
           />
           
           <div className="details-overlay">
@@ -99,11 +91,13 @@ function MovieCard({ movie }) {
 
       {/* Info Section */}
       <div className="who">
-        <Link to={`/movie/${movie.id}`} className="title-link">
-          <h2>{movie.title}</h2>
+        <Link to={`/${mediaType === "tv" ? "tv" : "movie"}/${movie.id}`} className="title-link">
+          <h2>{displayTitle}</h2>
         </Link>
         <span className="release-year">
-          {movie.release_date ? movie.release_date.split("-")[0] : "N/A"}
+          {(movie.release_date || movie.first_air_date) 
+            ? (movie.release_date || movie.first_air_date).split("-")[0] 
+            : "N/A"}
         </span>
       </div>
 
@@ -120,7 +114,7 @@ function MovieCard({ movie }) {
         )}
 
         <button className="play-btn" onClick={handlePlay} type="button">
-          ▶ Play
+          {mediaType === "tv" ? "📺 Watch Series" : "▶ Play Full Movie"}
         </button>
       </div>
     </div>

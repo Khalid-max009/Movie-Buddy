@@ -59,3 +59,23 @@ export const getSimilarMovies = async (movieId) => {
   const data = await response.json();
   return data.results;
 };
+
+// Example API helper for country and media type filtering using TMDb Discover
+export const getFilteredMedia = async (mediaType = "movie", countryCode = "", page = 1) => {
+  try {
+    let url = `${BASE_URL}/discover/${mediaType}?api_key=${API_KEY}&page=${page}&sort_by=popularity.desc`;
+    
+    // If a specific country code is passed (e.g., "NG" or "US")
+    if (countryCode) {
+      // TMDb uses with_origin_country for both movies and TV discovery
+      url += `&with_origin_country=${countryCode}`;
+    }
+
+    const response = await fetch(url);
+    const data = await response.json();
+    return data.results || [];
+  } catch (error) {
+    console.error("Error fetching filtered media:", error);
+    return [];
+  }
+};
