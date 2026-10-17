@@ -361,3 +361,35 @@
   }
 }
 
+
+@media screen and (max-width: 600px) {
+  .home-container,
+  .home-layout-wrapper {
+    width: 100%;
+    max-width: 100%;
+    box-sizing: border-box;
+    margin-left: 0;
+    margin-right: 0;
+  }
+
+  .home-layout-wrapper {
+    padding: 8px;
+    overflow-x: clip;
+  }
+
+  .home-main-content {
+    width: 100%;
+    min-width: 0;
+    max-width: 100%;
+    box-sizing: border-box;
+  }
+
+  .movies-grid {
+    width: 100%;
+    max-width: 100%;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 12px;
+    padding: 8px 0;
+    box-sizing: border-box;
+  }
+}
