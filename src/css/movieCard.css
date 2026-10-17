@@ -50,26 +50,52 @@
   filter: brightness(0.8);
 }
 
-/* Mobile Fix: Remove max-width restriction on small screens */
+
 @media (max-width: 600px) {
   .MovieCard {
-    max-width: 100% !important; /* Removes the 230px cap on mobile */
-    width: 100% !important;
+    min-width: 0;
+    width: 100%;
+    box-sizing: border-box;
+  }
+
+  .poster-container,
+  .poster-link {
+    width: 100%;
+    min-width: 0;
+  }
+
+  .poster-link {
+    display: block;
+  }
+
+  .poster-link img {
+    display: block;
+    width: 100%;
+    height: auto;
+    aspect-ratio: 2 / 3;
+    object-fit: cover;
   }
 
   .who h2 {
-    font-size: 0.85rem; /* Scales down title text so it fits 2-column cards */
+    font-size: 0.9rem;
+    overflow-wrap: anywhere;
   }
 
   .card-footer {
-    padding: 4px;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
   }
 
   .card-footer button {
+    width: 100%;
+    min-width: 0;
+    box-sizing: border-box;
     font-size: 0.75rem;
-    padding: 4px 6px;
+    padding: 8px 4px;
   }
 }
+
 /* Hover Overlay Badge */
 .details-overlay {
   position: absolute;

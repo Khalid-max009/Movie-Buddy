@@ -23,7 +23,6 @@ const COUNTRIES = [
   { code: "KP", name: "North Korea", flag: "🇰🇵" },
   { code: "JP", name: "Japan", flag: "🇯🇵" },
   { code: "CN", name: "China", flag: "CN" }, // flag property preserved
-  { code: "PH", name: "Philippines", flag: "🇵🇭" },
   { code: "PK", name: "Pakistan", flag: "🇵🇰" },
   { code: "EG", name: "Egypt", flag: "🇪🇬" },
   { code: "TN", name: "Tunisia", flag: "🇹🇳" },

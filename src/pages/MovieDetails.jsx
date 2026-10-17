@@ -3,7 +3,7 @@ import { useParams } from "react-router-dom";
 import { useMovieContext } from "../contexts/MovieContext";
 import MovieCard from "../components/MovieCard";
 import "../css/MovieDetails.css";
-
+import MoviePlayer from '../components/MoviePlayer';
 const API_KEY = import.meta.env.VITE_TMDB_API_KEY;
 const BASE_URL = "https://api.themoviedb.org/3";
 
@@ -141,21 +141,15 @@ function MovieDetails() {
         </div>
       </div>
 
-      {/* NEW: Full Movie Online Streaming Section (Like 9jaRocks / Nkiri) */}
+       {/* Full Movie Online Streaming Section using your custom component */}
       <div className="trailer-section streaming-player-section">
         <h2>🎥 Watch Full Movie Online (HD Stream)</h2>
-        <div className="video-responsive">
-          <iframe
-            width="853"
-            height="480"
-            src={`https://vidsrc.me/embed/movie/${id}`}
-            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-            allowFullScreen
-            title="Full Movie Streaming Player"
-          />
-        </div>
+        <MoviePlayer 
+          movieId={movie.id} 
+          mediaType={movie.title ? 'movie' : 'tv'} 
+          title={movie.title || movie.name} 
+        />
       </div>
-
        
       {/* Trailer Section */}
       <div className="trailer-section">
