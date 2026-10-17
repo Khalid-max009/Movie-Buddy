@@ -368,3 +368,12 @@
     padding: 6px 10px;
   }
 }
+
+@media screen and (max-width: 600px) {
+  .movies-grid > .MovieCard {
+    width: 100%;
+    min-width: 0;
+    max-width: 100%;
+    box-sizing: border-box;
+  }
+}
