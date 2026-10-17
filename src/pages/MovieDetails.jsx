@@ -1,21 +1,26 @@
 import { useState, useEffect } from "react";
-import { useParams } from "react-router-dom";
+import { useParams, useLocation } from "react-router-dom"; // Added useLocation
 import { useMovieContext } from "../contexts/MovieContext";
 import MovieCard from "../components/MovieCard";
 import "../css/MovieDetails.css";
 import MoviePlayer from '../components/MoviePlayer';
+
 const API_KEY = import.meta.env.VITE_TMDB_API_KEY;
 const BASE_URL = "https://api.themoviedb.org/3";
 
 function MovieDetails() {
   const { id } = useParams();
+  const location = useLocation();
+  
+  // Determine if it's a TV series based on URL pathname or passed state
+  const isTvSeries = location.pathname.includes('/tv/') || location.state?.mediaType === 'tv';
+
   const [movie, setMovie] = useState(null);
   const [trailerKey, setTrailerKey] = useState(null);
   const [cast, setCast] = useState([]);
   const [recommendations, setRecommendations] = useState([]);
   const [loading, setLoading] = useState(true);
 
-  // Destructure Watchlist alongside Favorites from Context
   const {
     isFavorite,
     addToFavorites,
@@ -26,17 +31,18 @@ function MovieDetails() {
   } = useMovieContext();
 
   useEffect(() => {
-    const fetchMovieDetails = async () => {
+    const fetchDetails = async () => {
       try {
         setLoading(true);
+        const mediaEndpoint = isTvSeries ? 'tv' : 'movie';
 
-        // 1. Fetch basic movie details
-        const res = await fetch(`${BASE_URL}/movie/${id}?api_key=${API_KEY}`);
+        // 1. Fetch basic details (Movie or TV)
+        const res = await fetch(`${BASE_URL}/${mediaEndpoint}/${id}?api_key=${API_KEY}`);
         const data = await res.json();
         setMovie(data);
 
-        // 2. Fetch videos for YouTube trailer
-        const videoRes = await fetch(`${BASE_URL}/movie/${id}/videos?api_key=${API_KEY}`);
+        // 2. Fetch videos for trailer
+        const videoRes = await fetch(`${BASE_URL}/${mediaEndpoint}/${id}/videos?api_key=${API_KEY}`);
         const videoData = await videoRes.json();
         
         if (videoData.results && videoData.results.length > 0) {
@@ -50,32 +56,36 @@ function MovieDetails() {
         }
 
         // 3. Fetch Cast Credits
-        const castRes = await fetch(`${BASE_URL}/movie/${id}/credits?api_key=${API_KEY}`);
+        const castRes = await fetch(`${BASE_URL}/${mediaEndpoint}/${id}/credits?api_key=${API_KEY}`);
         const castData = await castRes.json();
-        setCast(castData.cast ? castData.cast.slice(0, 10) : []); // Top 10 actors
+        setCast(castData.cast ? castData.cast.slice(0, 10) : []);
 
         // 4. Fetch Similar Recommendations
-        const recRes = await fetch(`${BASE_URL}/movie/${id}/recommendations?api_key=${API_KEY}`);
+        const recRes = await fetch(`${BASE_URL}/${mediaEndpoint}/${id}/recommendations?api_key=${API_KEY}`);
         const recData = await recRes.json();
         setRecommendations(recData.results ? recData.results.slice(0, 8) : []);
 
       } catch (err) {
-        console.error("Error fetching movie details:", err);
+        console.error("Error fetching details:", err);
         setTrailerKey(null);
       } finally {
         setLoading(false);
       }
     };
 
-    fetchMovieDetails();
-    window.scrollTo(0, 0); // Scroll to top when loading a new movie
-  }, [id]);
+    fetchDetails();
+    window.scrollTo(0, 0);
+  }, [id, isTvSeries]);
 
-  if (loading) return <div className="loading">Loading movie details...</div>;
-  if (!movie) return <div className="error">Movie not found.</div>;
+  if (loading) return <div className="loading">Loading details...</div>;
+  if (!movie) return <div className="error">Title not found.</div>;
 
   const favorite = isFavorite(movie.id);
   const bookmarked = inWatchlist(movie.id);
+
+  // Fallbacks for Movie vs TV properties
+  const title = movie.title || movie.name;
+  const releaseDate = movie.release_date || movie.first_air_date;
 
   return (
     <div className="movie-details-container">
@@ -95,11 +105,11 @@ function MovieDetails() {
                   ? `https://image.tmdb.org/t/p/w500${movie.poster_path}` 
                   : "https://via.placeholder.com/500x750?text=No+Poster"
               } 
-              alt={movie.title} 
+              alt={title} 
               className="details-poster"
             />
             <div className="details-info">
-              <h1>{movie.title} ({movie.release_date?.split("-")[0] || "N/A"})</h1>
+              <h1>{title} ({releaseDate?.split("-")[0] || "N/A"})</h1>
               {movie.tagline && <p className="tagline"><em>"{movie.tagline}"</em></p>}
               
               <div className="genres">
@@ -113,8 +123,8 @@ function MovieDetails() {
               
               <p>
                 ⏱️ <strong>Runtime:</strong>{" "}
-                {movie.runtime && movie.runtime > 0 
-                  ? `${movie.runtime} mins` 
+                {movie.runtime || (movie.episode_run_time && movie.episode_run_time[0])
+                  ? `${movie.runtime || movie.episode_run_time[0]} mins` 
                   : "Not specified"}
               </p>
 
@@ -141,16 +151,16 @@ function MovieDetails() {
         </div>
       </div>
 
-       {/* Full Movie Online Streaming Section using your custom component */}
+      {/* Streaming Section */}
       <div className="trailer-section streaming-player-section">
-        <h2>🎥 Watch Full Movie Online (HD Stream)</h2>
+        <h2>🎥 Watch Full Streaming (HD Stream)</h2>
         <MoviePlayer 
           movieId={movie.id} 
-          mediaType={movie.title ? 'movie' : 'tv'} 
-          title={movie.title || movie.name} 
+          mediaType={isTvSeries ? 'tv' : 'movie'} 
+          title={title} 
         />
       </div>
-       
+        
       {/* Trailer Section */}
       <div className="trailer-section">
         <h2>Official Trailer</h2>
