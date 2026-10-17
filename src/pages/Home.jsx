@@ -247,9 +247,13 @@ function Home() {
             ? Array.from({ length: 10 }).map((_, index) => (
                 <MovieCardSkeleton key={index} />
               ))
-            : movies.map((movie, index) => (
-                <MovieCard key={`${movie.id}-${index}`} movie={movie} mediaType={mediaType} />
-              ))}
+           : movies.map((movie, index) => (
+            <MovieCard 
+              key={`${movie.id}-${index}`} 
+              movie={movie} 
+              mediaType={movie.media_type || mediaType} 
+            />
+          ))}
 
           {loading && page > 1 &&
             Array.from({ length: 5 }).map((_, index) => (
