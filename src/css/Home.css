@@ -212,15 +212,7 @@
   color: var(--accent-color);
   background-color: var(--border-color);
 }
-/* Sidebar & Layout Styles */
-.home-layout-wrapper {
-  display: flex;
-  gap: 24px;
-  max-width: 1400px;
-  margin: 0 auto;
-  padding: 20px;
-  align-items: flex-start;
-}
+ 
 
 /* Sidebar styling */
 .filter-sidebar {
@@ -312,16 +304,47 @@
   flex: 1;
   min-width: 0; /* Prevents layout breakage on smaller screens */
 }
+ 
 
-/* Mobile responsive collapse */
+.home-layout-wrapper {
+  display: flex;
+  gap: 24px;
+  width: 100%;
+  max-width: 1400px;
+  margin: 0 auto;
+  padding: 20px;
+  box-sizing: border-box;
+  align-items: flex-start;
+}
+
+ 
+
+/* Mobile layout */
 @media (max-width: 850px) {
   .home-layout-wrapper {
     flex-direction: column;
+    gap: 16px;
+    padding: 12px;
+    width: 100%;
   }
 
   .filter-sidebar {
     width: 100%;
+    box-sizing: border-box;
     position: static;
+  }
+
+  .home-main-content {
+    width: 100%;
+    min-width: 0;
+  }
+
+  .movies-grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 10px;
+    width: 100%;
+    padding: 8px 0;
     box-sizing: border-box;
   }
 }
