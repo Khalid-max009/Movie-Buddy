@@ -9,7 +9,7 @@ const BASE_URL = "https://api.themoviedb.org/3"
 };
 // Search movies
  export const searchMovie = async (query, page = 1) => {
-  const response = await fetch(`${BASE_URL}/search/movie?api_key=${API_KEY}&query=${encodeURIComponent(query)}&page=${page}`);
+  const response = await fetch(`${BASE_URL}/search/multi?api_key=${API_KEY}&query=${encodeURIComponent(query)}&page=${page}`);
   const data = await response.json();
   return data.results;
 };
