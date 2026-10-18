@@ -27,6 +27,16 @@ const COUNTRIES = [
   { code: "EG", name: "Egypt", flag: "🇪🇬" },
   { code: "TN", name: "Tunisia", flag: "🇹🇳" },
   { code: "MA", name: "Morocco", flag: "🇲🇦" },
+  { code: "PH", name: "Philippines", flag: "🇵🇭" }
+];
+
+const YEARS = [
+  { code: "", label: "All Years" },
+  { code: "2026", label: "2026 (Latest)" },
+  { code: "2025", label: "2025" },
+  { code: "2024", label: "2024" },
+  { code: "2023", label: "2023" },
+  { code: "2022", label: "2022" },
 ];
 
 function Home() {
@@ -41,6 +51,7 @@ function Home() {
   // Sidebar & Filter State
   const [selectedCountry, setSelectedCountry] = useState(""); // "" for Global
   const [mediaType, setMediaType] = useState("movie"); // "movie" or "tv"
+  const [selectedYear, setSelectedYear] = useState("");
   
   // Genre Filtering State
   const [genres, setGenres] = useState([]);
@@ -67,7 +78,7 @@ function Home() {
       setSelectedGenre(null);
     }
     setPage(1);
-  }, [debouncedSearchQuery, selectedCountry, mediaType]);
+  }, [debouncedSearchQuery, selectedCountry, selectedYear, mediaType]);
 
   // Fetch movies/series whenever page, debounced query, selected genre, mediaType, or selectedCountry changes
   useEffect(() => {
@@ -81,8 +92,8 @@ function Home() {
           newMovies = await searchMovie(debouncedSearchQuery, page);
         } else if (selectedGenre) {
           newMovies = await getMoviesByGenre(selectedGenre, page);
-        } else if (selectedCountry || mediaType === "tv") {
-          newMovies = await getFilteredMedia(mediaType, selectedCountry, page);
+        } else if (selectedCountry || selectedYear || mediaType === "tv") {
+          newMovies = await getFilteredMedia(mediaType, selectedCountry, selectedYear, page);
         } else {
           newMovies = await getPopularMovie(page);
         }
@@ -103,7 +114,7 @@ function Home() {
     };
 
     fetchMovies();
-  }, [page, debouncedSearchQuery, selectedGenre, mediaType, selectedCountry]);
+  }, [page, debouncedSearchQuery, selectedGenre, mediaType, selectedCountry, selectedYear]);
 
   const handleSearchSubmit = (e) => {
     e.preventDefault();
@@ -128,6 +139,14 @@ function Home() {
     setSelectedGenre(null);
     setPage(1);
     setSelectedCountry(countryCode);
+  };
+
+  // 👈 for year
+  const handleYearSelect = (yearCode) => {
+    setSearchQuery("");
+    setSelectedGenre(null);
+    setPage(1);
+    setSelectedYear(yearCode);
   };
 
   // When media format toggle button is clicked (Movies vs Series)
@@ -187,6 +206,24 @@ function Home() {
             </button>
           </div>
         </div>
+          {/* 👈 RELEASE YEAR SECTION */}
+        <div className="sidebar-media-toggle" style={{ marginTop: "20px" }}>
+          <h4>Release Year</h4>
+          <div className="country-list" style={{ maxHeight: "180px" }}>
+            {YEARS.map((y) => (
+              <button
+                key={y.code}
+                type="button"
+                className={`country-sidebar-btn ${selectedYear === y.code ? "active" : ""}`}
+                onClick={() => handleYearSelect(y.code)}
+              >
+                <span className="country-name">{y.label}</span>
+              </button>
+            ))}
+          </div>
+        </div>
+
+
       </aside>
 
       {/* Main Content Area */}

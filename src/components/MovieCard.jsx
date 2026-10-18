@@ -44,13 +44,15 @@ function MovieCard({ movie, mediaType = "movie" }) {
   }
 
   function handlePlay(e) {
-    e.preventDefault();
-    e.stopPropagation();
-    // Dynamically route based on media type if your app supports separate routes, 
-    // or pass the type as state/query param
-    const routePrefix = mediaType === "tv" ? "/tv" : "/movie";
-    navigate(`${routePrefix}/${movie.id}`);
-  }
+  e.preventDefault();
+  e.stopPropagation();
+  
+  // Use movie.media_type first if it exists, otherwise fall back to the component prop
+  const actualMediaType = movie.media_type || mediaType;
+  const routePrefix = actualMediaType === "tv" ? "/tv" : "/movie";
+  
+  navigate(`${routePrefix}/${movie.id}`);
+}  
 
   return (
     <div className={`MovieCard ${isWatched ? "watched" : ""}`}>

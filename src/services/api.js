@@ -61,14 +61,20 @@ export const getSimilarMovies = async (movieId) => {
 };
 
 // Example API helper for country and media type filtering using TMDb Discover
-export const getFilteredMedia = async (mediaType = "movie", countryCode = "", page = 1) => {
+ export const getFilteredMedia = async (mediaType = "movie", countryCode = "", year = "", page = 1) => {
   try {
     let url = `${BASE_URL}/discover/${mediaType}?api_key=${API_KEY}&page=${page}&sort_by=popularity.desc`;
     
-    // If a specific country code is passed (e.g., "NG" or "US")
+    // If a specific country code is passed
     if (countryCode) {
-      // TMDb uses with_origin_country for both movies and TV discovery
       url += `&with_origin_country=${countryCode}`;
+    }
+
+    // If a specific release year is passed
+    if (year) {
+      // TMDb uses primary_release_year for movies and first_air_date_year for TV series
+      const yearParam = mediaType === "tv" ? "first_air_date_year" : "primary_release_year";
+      url += `&${yearParam}=${year}`;
     }
 
     const response = await fetch(url);

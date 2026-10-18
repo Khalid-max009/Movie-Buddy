@@ -265,8 +265,8 @@
 }
 
 .country-sidebar-btn.active {
-  background-color: #e50914;
-  color: #fff;
+  background-color: #e50914 !important;
+  color: #fff !important;
   font-weight: 600;
 }
 
