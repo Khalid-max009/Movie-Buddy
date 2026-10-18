@@ -27,7 +27,7 @@ const COUNTRIES = [
   { code: "EG", name: "Egypt", flag: "🇪🇬" },
   { code: "TN", name: "Tunisia", flag: "🇹🇳" },
   { code: "MA", name: "Morocco", flag: "🇲🇦" },
-  { code: "PH", name: "Philippines", flag: "🇵🇭" }
+   
 ];
 
 const YEARS = [
