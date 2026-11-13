@@ -7,11 +7,10 @@
 .page-title {
   text-align: center;
   margin-bottom: 24px;
-  color: #f8fafc;
+  color: var(--text-primary);
   font-size: 24px;
   font-weight: 700;
 }
-
 /* Movie Grid Layout for Favourites */
 .movies-grid {
   display: grid;

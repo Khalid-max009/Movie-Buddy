@@ -25,6 +25,10 @@ function MovieCard({ movie, mediaType = "movie" }) {
   // Use title for movies, name for TV series
   const displayTitle = movie.title || movie.name;
 
+  // 1. Properly evaluate the actual media type (prioritizing TMDB's movie.media_type)
+  const actualMediaType = movie.media_type || mediaType || (movie.first_air_date ? "tv" : "movie");
+  const routePrefix = actualMediaType === "tv" ? "tv" : "movie";
+
   function onFavoriteClick(e) {
     e.preventDefault();
     e.stopPropagation();
@@ -44,20 +48,16 @@ function MovieCard({ movie, mediaType = "movie" }) {
   }
 
   function handlePlay(e) {
-  e.preventDefault();
-  e.stopPropagation();
-  
-  // Use movie.media_type first if it exists, otherwise fall back to the component prop
-  const actualMediaType = movie.media_type || mediaType;
-  const routePrefix = actualMediaType === "tv" ? "/tv" : "/movie";
-  
-  navigate(`${routePrefix}/${movie.id}`);
-}  
+    e.preventDefault();
+    e.stopPropagation();
+    navigate(`/${routePrefix}/${movie.id}`);
+  }  
 
   return (
     <div className={`MovieCard ${isWatched ? "watched" : ""}`}>
       <div className="poster-container">
-        <Link to={`/${mediaType === "tv" ? "tv" : "movie"}/${movie.id}`} className="poster-link">
+        {/* FIXED: Uses actualMediaType for correct routing */}
+        <Link to={`/${routePrefix}/${movie.id}`} className="poster-link">
           <img
             src={
               movie.poster_path
@@ -93,7 +93,8 @@ function MovieCard({ movie, mediaType = "movie" }) {
 
       {/* Info Section */}
       <div className="who">
-        <Link to={`/${mediaType === "tv" ? "tv" : "movie"}/${movie.id}`} className="title-link">
+        {/* FIXED: Uses actualMediaType for correct routing */}
+        <Link to={`/${routePrefix}/${movie.id}`} className="title-link">
           <h2>{displayTitle}</h2>
         </Link>
         <span className="release-year">
@@ -115,12 +116,13 @@ function MovieCard({ movie, mediaType = "movie" }) {
           </button>
         )}
 
+        {/* FIXED: Dynamically displays Play Full Series or Play Full Movie */}
         <button className="play-btn" onClick={handlePlay} type="button">
-          {mediaType === "tv" ? "📺 Watch Series" : "▶ Play Full Movie"}
+          {actualMediaType === "tv" ? "📺 Play Full Series" : "▶ Play Full Movie"}
         </button>
       </div>
     </div>
   );
 }
 
-export default MovieCard;
+export default MovieCard; // (Keep your export default MovieCard format)

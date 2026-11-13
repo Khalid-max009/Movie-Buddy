@@ -2,32 +2,33 @@ import { useState, useEffect } from "react";
 import MovieCardSkeleton from "../components/MovieCardSkeleton";
 import MovieCard from "../components/MovieCard";
 import { useDebounce } from "../hooks/useDebounce";
-import { 
-  searchMovie, 
-  getPopularMovie, 
-  getGenres, 
-  getMoviesByGenre, 
-  getFilteredMedia 
+import { useAuth } from "../contexts/AuthContext";
+import {
+  searchMovie,
+  getPopularMovie,
+  getGenres,
+  getMoviesByGenre,
+  getFilteredMedia
 } from "../services/api";
 import "../css/Home.css";
 
 const COUNTRIES = [
-  { code: "", name: "Global / Popular", flag: "🌍" },
-  { code: "NG", name: "Nigeria", flag: "🇳🇬" },
-  { code: "ZA", name: "South Africa", flag: "🇿🇦" },
-  { code: "US", name: "USA", flag: "🇺🇸" },
-  { code: "GB", name: "United Kingdom", flag: "🇬🇧" },
-  { code: "KR", name: "South Korea", flag: "🇰🇷" },
-  { code: "IN", name: "India", flag: "🇮🇳" },
-  { code: "LS", name: "Lesotho", flag: "🇱🇸" },
-  { code: "KP", name: "North Korea", flag: "🇰🇵" },
-  { code: "JP", name: "Japan", flag: "🇯🇵" },
-  { code: "CN", name: "China", flag: "CN" }, // flag property preserved
-  { code: "PK", name: "Pakistan", flag: "🇵🇰" },
-  { code: "EG", name: "Egypt", flag: "🇪🇬" },
-  { code: "TN", name: "Tunisia", flag: "🇹🇳" },
-  { code: "MA", name: "Morocco", flag: "🇲🇦" },
-   
+  { code: "", name: "Global / Popular", flag: "" },
+  { code: "NG", name: "Nigeria", flag: "NG" },
+  { code: "ZA", name: "South Africa", flag: "ZA" },
+  { code: "US", name: "USA", flag: "us" },
+  { code: "GB", name: "United Kingdom", flag: "GB" },
+  { code: "KR", name: "South Korea", flag: "KR" },
+  { code: "IN", name: "India", flag: "IN" },
+  { code: "LS", name: "Lesotho", flag: "LS" },
+  { code: "KP", name: "North Korea", flag: "KP" },
+  { code: "JP", name: "Japan", flag: "JP" },
+  { code: "CN", name: "China", flag: "CN" },
+  { code: "PK", name: "Pakistan", flag: "PK" },
+  { code: "EG", name: "Egypt", flag: "EG" },
+  { code: "TN", name: "Tunisia", flag: "TN" },
+  { code: "MA", name: "Morocco", flag: "MA" },
+  { code: "PH", name: "Philippines", flag: "PH" }
 ];
 
 const YEARS = [
@@ -40,24 +41,62 @@ const YEARS = [
 ];
 
 function Home() {
-  const [searchQuery, setSearchQuery] = useState("");
-  const [activeQuery, setActiveQuery] = useState("");
-  const [movies, setMovies] = useState([]);
-  const [page, setPage] = useState(1);
+  const { user, preferences } = useAuth();
+
+  // Initialize state from sessionStorage if available to preserve history state
+  const [searchQuery, setSearchQuery] = useState(() => sessionStorage.getItem("mb_search") || "");
+  const [movies, setMovies] = useState(() => {
+    const saved = sessionStorage.getItem("mb_movies");
+    return saved ? JSON.parse(saved) : [];
+  });
+  const [page, setPage] = useState(() => {
+    const saved = sessionStorage.getItem("mb_page");
+    return saved ? Number(saved) : 1;
+  });
+  
   const [error, setError] = useState(null);
   const [loading, setLoading] = useState(false);
   const [hasMore, setHasMore] = useState(true);
 
   // Sidebar & Filter State
-  const [selectedCountry, setSelectedCountry] = useState(""); // "" for Global
-  const [mediaType, setMediaType] = useState("movie"); // "movie" or "tv"
-  const [selectedYear, setSelectedYear] = useState("");
-  
+  const [selectedCountry, setSelectedCountry] = useState(() => sessionStorage.getItem("mb_country") || "");
+  const [mediaType, setMediaType] = useState(() => sessionStorage.getItem("mb_mediaType") || "movie");
+  const [selectedYear, setSelectedYear] = useState(() => sessionStorage.getItem("mb_year") || "");
+  const [isPersonalizedView, setIsPersonalizedView] = useState(false);
+
   // Genre Filtering State
   const [genres, setGenres] = useState([]);
-  const [selectedGenre, setSelectedGenre] = useState(null);
-  
+  const [selectedGenre, setSelectedGenre] = useState(() => {
+    const saved = sessionStorage.getItem("mb_genre");
+    return saved ? JSON.parse(saved) : null;
+  });
+
   const debouncedSearchQuery = useDebounce(searchQuery.trim(), 300);
+
+  // Save state to sessionStorage whenever it changes
+  useEffect(() => {
+    sessionStorage.setItem("mb_search", searchQuery);
+    sessionStorage.setItem("mb_movies", JSON.stringify(movies));
+    sessionStorage.setItem("mb_page", page);
+    sessionStorage.setItem("mb_country", selectedCountry);
+    sessionStorage.setItem("mb_mediaType", mediaType);
+    sessionStorage.setItem("mb_year", selectedYear);
+    sessionStorage.setItem("mb_genre", JSON.stringify(selectedGenre));
+  }, [searchQuery, movies, page, selectedCountry, mediaType, selectedYear, selectedGenre]);
+
+  // Restore scroll position on mount
+  useEffect(() => {
+    const savedScroll = sessionStorage.getItem("mb_scroll_pos");
+    if (savedScroll) {
+      window.scrollTo(0, parseInt(savedScroll, 10));
+    }
+
+    const handleScroll = () => {
+      sessionStorage.setItem("mb_scroll_pos", window.scrollY);
+    };
+    window.addEventListener("scroll", handleScroll);
+    return () => window.removeEventListener("scroll", handleScroll);
+  }, []);
 
   // Fetch genre list on mount
   useEffect(() => {
@@ -72,30 +111,37 @@ function Home() {
     fetchGenresList();
   }, []);
 
-  // Reset pagination & genre selection when search input or filters change
+  // Reset pagination when search input or filters change
   useEffect(() => {
     if (debouncedSearchQuery) {
       setSelectedGenre(null);
+      setIsPersonalizedView(false);
+      setPage(1);
     }
-    setPage(1);
   }, [debouncedSearchQuery, selectedCountry, selectedYear, mediaType]);
 
-  // Fetch movies/series whenever page, debounced query, selected genre, mediaType, or selectedCountry changes
+  // Fetch movies/series supporting simultaneous Country, Year, Genre, and Media Type filtering
   useEffect(() => {
+    const hasStoredMovies = sessionStorage.getItem("mb_movies");
+    if (hasStoredMovies && movies.length > 0 && page === 1 && !debouncedSearchQuery && !selectedGenre && !selectedCountry && !selectedYear && mediaType === "movie" && !isPersonalizedView) {
+      sessionStorage.removeItem("mb_movies");
+      return;
+    }
+
     const fetchMovies = async () => {
       setLoading(true);
       setError(null);
       try {
         let newMovies = [];
-
         if (debouncedSearchQuery) {
           newMovies = await searchMovie(debouncedSearchQuery, page);
-        } else if (selectedGenre) {
-          newMovies = await getMoviesByGenre(selectedGenre, page);
-        } else if (selectedCountry || selectedYear || mediaType === "tv") {
-          newMovies = await getFilteredMedia(mediaType, selectedCountry, selectedYear, page);
+        } else if (isPersonalizedView && preferences?.genres?.length > 0) {
+          // Fetch using user's primary onboarding genre preference
+          const primaryGenre = preferences.genres[0];
+          const primaryCountry = preferences.countries?.[0] || selectedCountry;
+          newMovies = await getFilteredMedia(mediaType, primaryCountry, selectedYear, primaryGenre, page);
         } else {
-          newMovies = await getPopularMovie(page);
+          newMovies = await getFilteredMedia(mediaType, selectedCountry, selectedYear, selectedGenre, page);
         }
 
         if (!newMovies || newMovies.length === 0) {
@@ -103,8 +149,8 @@ function Home() {
           if (page === 1) setMovies([]);
         } else {
           setMovies((prev) => (page === 1 ? newMovies : [...prev, ...newMovies]));
-          setHasMore(newMovies.length >= 10);
         }
+        setHasMore(newMovies ? newMovies.length >= 10 : false);
       } catch (err) {
         console.error(err);
         setError("Failed to load content. Please try again.");
@@ -114,7 +160,7 @@ function Home() {
     };
 
     fetchMovies();
-  }, [page, debouncedSearchQuery, selectedGenre, mediaType, selectedCountry, selectedYear]);
+  }, [page, debouncedSearchQuery, selectedGenre, mediaType, selectedCountry, selectedYear, isPersonalizedView, preferences]);
 
   const handleSearchSubmit = (e) => {
     e.preventDefault();
@@ -132,40 +178,38 @@ function Home() {
     }
   };
 
-  // When a country sidebar button is clicked
   const handleCountrySelect = (countryCode) => {
     setSearchQuery("");
-    setActiveQuery("");
-    setSelectedGenre(null);
+    setIsPersonalizedView(false);
     setPage(1);
-    setSelectedCountry(countryCode);
+    setSelectedCountry(countryCode === selectedCountry ? "" : countryCode);
   };
 
-  // 👈 for year
   const handleYearSelect = (yearCode) => {
     setSearchQuery("");
-    setSelectedGenre(null);
+    setIsPersonalizedView(false);
     setPage(1);
-    setSelectedYear(yearCode);
+    setSelectedYear(yearCode === selectedYear ? "" : yearCode);
   };
 
-  // When media format toggle button is clicked (Movies vs Series)
   const handleMediaTypeChange = (type) => {
     setMediaType(type);
     setPage(1);
   };
 
-  // When a genre pill is clicked
   const handleGenreSelect = (genreId) => {
     setSearchQuery("");
-    setActiveQuery("");
+    setIsPersonalizedView(false);
     setPage(1);
+    setSelectedGenre(selectedGenre === genreId ? null : genreId);
+  };
 
-    if (selectedGenre === genreId) {
-      setSelectedGenre(null);
-    } else {
-      setSelectedGenre(genreId);
-    }
+  // Handler for AI Recommended For You Pill
+  const handlePersonalizedClick = () => {
+    setSearchQuery("");
+    setSelectedGenre(null);
+    setIsPersonalizedView(!isPersonalizedView);
+    setPage(1);
   };
 
   return (
@@ -186,7 +230,6 @@ function Home() {
             </button>
           ))}
         </div>
-
         <div className="sidebar-media-toggle">
           <h4>Media Format</h4>
           <div className="toggle-buttons">
@@ -195,18 +238,18 @@ function Home() {
               className={`toggle-btn ${mediaType === "movie" ? "active" : ""}`}
               onClick={() => handleMediaTypeChange("movie")}
             >
-              🎬 Movies
+              Movies
             </button>
             <button
               type="button"
               className={`toggle-btn ${mediaType === "tv" ? "active" : ""}`}
               onClick={() => handleMediaTypeChange("tv")}
             >
-              📺 Series
+              Series
             </button>
           </div>
         </div>
-          {/* 👈 RELEASE YEAR SECTION */}
+
         <div className="sidebar-media-toggle" style={{ marginTop: "20px" }}>
           <h4>Release Year</h4>
           <div className="country-list" style={{ maxHeight: "180px" }}>
@@ -222,8 +265,6 @@ function Home() {
             ))}
           </div>
         </div>
-
-
       </aside>
 
       {/* Main Content Area */}
@@ -255,12 +296,28 @@ function Home() {
 
         {error && <p className="error-message">{error}</p>}
 
-        {/* Genre Filter Pills */}
+        {/* Genres & Personalized "For You" Pill Bar */}
         {!debouncedSearchQuery && genres.length > 0 && (
           <div className="genre-container">
+            {user && preferences?.genres?.length > 0 && (
+              <button
+                type="button"
+                className={`genre-pill personalized-pill ${isPersonalizedView ? "active" : ""}`}
+                onClick={handlePersonalizedClick}
+                style={{
+                  background: isPersonalizedView ? "#e50914" : "rgba(229, 9, 20, 0.15)",
+                  border: "1px solid #e50914",
+                  color: "#ffffff",
+                  fontWeight: "700"
+                }}
+              >
+                ✨ Recommended For You
+              </button>
+            )}
+
             <button
               type="button"
-              className={`genre-pill ${selectedGenre === null ? "active" : ""}`}
+              className={`genre-pill ${selectedGenre === null && !isPersonalizedView ? "active" : ""}`}
               onClick={() => handleGenreSelect(null)}
             >
               All Genres
@@ -269,7 +326,7 @@ function Home() {
               <button
                 key={genre.id}
                 type="button"
-                className={`genre-pill ${selectedGenre === genre.id ? "active" : ""}`}
+                className={`genre-pill ${selectedGenre === genre.id && !isPersonalizedView ? "active" : ""}`}
                 onClick={() => handleGenreSelect(genre.id)}
               >
                 {genre.name}
@@ -278,20 +335,36 @@ function Home() {
           </div>
         )}
 
+        {/* Personalized Banner Feedback */}
+        {isPersonalizedView && user && (
+          <div className="personalized-banner" style={{
+            background: "rgba(30, 41, 59, 0.7)",
+            borderLeft: "4px solid #e50914",
+            padding: "12px 18px",
+            borderRadius: "8px",
+            marginBottom: "20px",
+            color: "#f8fafc",
+            fontSize: "0.95rem"
+          }}>
+            🎯 Showing curated picks for <strong>{user.name}</strong> based on your favorite genres!
+          </div>
+        )}
+
         {/* Movie Grid */}
         <div className="movies-grid">
-          {loading && page === 1
-            ? Array.from({ length: 10 }).map((_, index) => (
-                <MovieCardSkeleton key={index} />
-              ))
-           : movies.map((movie, index) => (
-            <MovieCard 
-              key={`${movie.id}-${index}`} 
-              movie={movie} 
-              mediaType={movie.media_type || mediaType} 
-            />
-          ))}
-
+          {loading && page === 1 && movies.length === 0 ? (
+            Array.from({ length: 10 }).map((_, index) => (
+              <MovieCardSkeleton key={index} />
+            ))
+          ) : (
+            movies.map((movie, index) => (
+              <MovieCard
+                key={`${movie.id}-${index}`}
+                movie={movie}
+                mediaType={movie.media_type || mediaType}
+              />
+            ))
+          )}
           {loading && page > 1 &&
             Array.from({ length: 5 }).map((_, index) => (
               <MovieCardSkeleton key={`more-skeleton-${index}`} />

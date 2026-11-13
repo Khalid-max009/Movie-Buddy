@@ -7,11 +7,10 @@
 
 .page-title {
   text-align: center;
-  color: #f8fafc;
+  color: var(--text-primary);
   font-size: 2rem;
   margin-bottom: 24px;
 }
-
 /* Filter Tab Bar */
 .filter-container {
   display: flex;

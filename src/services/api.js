@@ -60,28 +60,57 @@ export const getSimilarMovies = async (movieId) => {
   return data.results;
 };
 
-// Example API helper for country and media type filtering using TMDb Discover
- export const getFilteredMedia = async (mediaType = "movie", countryCode = "", year = "", page = 1) => {
+export const getFilteredMedia = async (mediaType = "movie", countryCode = "", year = "", genreId = null, page = 1) => {
   try {
+    let activeGenreId = genreId;
+
+    // TMDB quirk fix: TV Series use ID 10759 for Action & Adventure instead of movie IDs 28/12
+    if (mediaType === "tv" && (genreId === 28 || genreId === 12)) {
+      activeGenreId = 10759; 
+    }
+
     let url = `${BASE_URL}/discover/${mediaType}?api_key=${API_KEY}&page=${page}&sort_by=popularity.desc`;
-    
-    // If a specific country code is passed
+
     if (countryCode) {
       url += `&with_origin_country=${countryCode}`;
     }
 
-    // If a specific release year is passed
     if (year) {
-      // TMDb uses primary_release_year for movies and first_air_date_year for TV series
       const yearParam = mediaType === "tv" ? "first_air_date_year" : "primary_release_year";
       url += `&${yearParam}=${year}`;
     }
 
+    if (activeGenreId) {
+      url += `&with_genres=${activeGenreId}`;
+    }
+
     const response = await fetch(url);
     const data = await response.json();
+    
+    // Fallback: If strict multi-filtering (Country + Year + Genre) returns nothing, 
+    // drop the year constraint to give the user popular results from that country/genre instead of a blank screen.
+    if ((!data.results || data.results.length === 0) && year) {
+      let fallbackUrl = `${BASE_URL}/discover/${mediaType}?api_key=${API_KEY}&page=${page}&sort_by=popularity.desc`;
+      if (countryCode) fallbackUrl += `&with_origin_country=${countryCode}`;
+      if (activeGenreId) fallbackUrl += `&with_genres=${activeGenreId}`;
+      
+      const fallbackRes = await fetch(fallbackUrl);
+      const fallbackData = await fallbackRes.json();
+      return fallbackData.results || [];
+    }
+
     return data.results || [];
   } catch (error) {
     console.error("Error fetching filtered media:", error);
     return [];
   }
+};
+
+export const getWatchProviders = async (mediaType, id) => {
+  const response = await fetch(
+    `${BASE_URL}/${mediaType}/${id}/watch/providers?api_key=${API_KEY}`
+  );
+  const data = await response.json();
+  // Returns region-specific providers (e.g., US, NG, GB)
+  return data.results;
 };

@@ -1,82 +1,3 @@
- 
-body {
-  background-color: #0f172a;
-  color: #f8fafc;
-  font-family: system-ui, -apple-system, sans-serif;
-  margin: 0;
-  padding: 0;
-}
-
- 
-.search-form {
-  display: flex;
-  justify-content: center;
-  gap: 12px;
-  margin: 30px auto;
-  max-width: 550px;
-  padding: 0 20px;
-}
-
-.search-input {
-  flex: 1;
-  padding: 12px 20px;
-  background-color: #1e293b;
-  border: 1px solid #334155;
-  border-radius: 25px;
-  color: #ffffff;
-  font-size: 15px;
-  outline: none;
-  transition: border-color 0.2s ease;
-}
-
-.search-input:focus {
-  border-color: #3b82f6;
-}
-
-.search-button {
-  padding: 12px 24px;
-  background-color: #3b82f6;
-  color: white;
-  border: none;
-  border-radius: 25px;
-  font-weight: 600;
-  cursor: pointer;
-  transition: background-color 0.2s, transform 0.1s;
-}
-
-.search-button:hover {
-  background-color: #2563eb;
-  transform: translateY(-1px);
-}
-
-/* 3. Movie Grid Layout */
-/* Container for the logo + brand title */
-
-/* Ensure the link occupies full poster bounds */
-.poster-link {
-  position: relative;
-  display: block;
-  overflow: hidden;
-  border-radius: 8px;
-}
-
-/* Hidden overlay layer */
-.poster-link img {
-  transition: transform 0.3s ease;
-  cursor: pointer;
-}
-
-.poster-link:hover img {
-  transform: scale(1.05);
-}
-.Home {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 20px;
-  justify-content: center;
-  padding: 20px 40px;
-}
-
 /* src/index.css */
 
 /* Dark Mode (Default) */
@@ -106,7 +27,80 @@ body {
   min-height: 100vh;
   background-color: var(--bg-primary);
   color: var(--text-primary);
+  font-family: system-ui, -apple-system, sans-serif;
   transition: background-color 0.3s ease, color 0.3s ease;
+}
+
+/* Global Headings */
+h1, h2, h3, h4, h5, h6 {
+  color: var(--text-primary);
+}
+
+/* Search Form Styling */
+.search-form {
+  display: flex;
+  justify-content: center;
+  gap: 12px;
+  margin: 30px auto;
+  max-width: 550px;
+  padding: 0 20px;
+}
+
+.search-input {
+  flex: 1;
+  padding: 12px 20px;
+  background-color: var(--bg-secondary);
+  border: 1px solid var(--border-color);
+  border-radius: 25px;
+  color: var(--text-primary);
+  font-size: 15px;
+  outline: none;
+  transition: border-color 0.2s ease;
+}
+
+.search-input:focus {
+  border-color: var(--accent-color);
+}
+
+.search-button {
+  padding: 12px 24px;
+  background-color: var(--accent-color);
+  color: white;
+  border: none;
+  border-radius: 25px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background-color 0.2s, transform 0.1s;
+}
+
+.search-button:hover {
+  background-color: #b80710;
+  transform: translateY(-1px);
+}
+
+/* Movie Grid Layout */
+.poster-link {
+  position: relative;
+  display: block;
+  overflow: hidden;
+  border-radius: 8px;
+}
+
+.poster-link img {
+  transition: transform 0.3s ease;
+  cursor: pointer;
+}
+
+.poster-link:hover img {
+  transform: scale(1.05);
+}
+
+.Home {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 20px;
+  justify-content: center;
+  padding: 20px 40px;
 }
 
 /* Removes default tap highlight background on mobile devices */

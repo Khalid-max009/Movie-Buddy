@@ -1,0 +1,112 @@
+/* src/css/OnboardingModal.css */
+
+.onboarding-modal-backdrop {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  background-color: rgba(2, 6, 23, 0.92);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 99999;
+  padding: 20px;
+}
+
+.onboarding-modal-content {
+  background-color: #1e293b;
+  border: 1px solid #475569;
+  padding: 40px;
+  border-radius: 24px;
+  width: 100%;
+  max-width: 600px;
+  max-height: 90vh;
+  overflow-y: auto;
+  box-shadow: 0 25px 60px rgba(0, 0, 0, 0.85);
+  animation: modalFadeIn 0.3s ease;
+}
+
+.onboarding-modal-content h2 {
+  margin: 0 0 10px 0;
+  font-size: 1.6rem;
+  font-weight: 800;
+  color: #ffffff;
+  letter-spacing: -0.5px;
+}
+
+.onboarding-subtitle {
+  font-size: 0.95rem;
+  color: #94a3b8;
+  margin-bottom: 28px;
+  line-height: 1.5;
+}
+
+.onboarding-form {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}
+
+.selection-section {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.selection-section label {
+  font-size: 0.95rem;
+  font-weight: 600;
+  color: #f1f5f9;
+}
+
+.pills-grid {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.preference-pill {
+  background-color: #0f172a;
+  border: 1px solid #334155;
+  color: #94a3b8;
+  padding: 10px 16px;
+  border-radius: 20px;
+  font-size: 0.88rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.preference-pill:hover {
+  border-color: #475569;
+  color: #ffffff;
+  background-color: #1e293b;
+}
+
+.preference-pill.selected {
+  background-color: #e50914;
+  border-color: #e50914;
+  color: #ffffff;
+  box-shadow: 0 4px 12px rgba(229, 9, 20, 0.4);
+}
+
+.onboarding-submit-btn {
+  margin-top: 10px;
+  padding: 15px;
+  background-color: #e50914;
+  color: #ffffff;
+  border: none;
+  border-radius: 12px;
+  font-weight: 700;
+  font-size: 1.05rem;
+  cursor: pointer;
+  transition: background-color 0.2s ease, transform 0.1s ease;
+  box-shadow: 0 4px 15px rgba(229, 9, 20, 0.4);
+}
+
+.onboarding-submit-btn:hover {
+  background-color: #b80710;
+}

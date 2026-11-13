@@ -1,20 +1,17 @@
 import { useState, useEffect } from "react";
-import { useParams, useLocation } from "react-router-dom"; // Added useLocation
+import { useParams, useLocation } from "react-router-dom";
 import { useMovieContext } from "../contexts/MovieContext";
 import MovieCard from "../components/MovieCard";
 import "../css/MovieDetails.css";
-import MoviePlayer from '../components/MoviePlayer';
-
+ 
 const API_KEY = import.meta.env.VITE_TMDB_API_KEY;
 const BASE_URL = "https://api.themoviedb.org/3";
 
 function MovieDetails() {
   const { id } = useParams();
   const location = useLocation();
-  
-  // Determine if it's a TV series based on URL pathname or passed state
   const isTvSeries = location.pathname.includes('/tv/') || location.state?.mediaType === 'tv';
-
+  
   const [movie, setMovie] = useState(null);
   const [trailerKey, setTrailerKey] = useState(null);
   const [cast, setCast] = useState([]);
@@ -36,7 +33,7 @@ function MovieDetails() {
         setLoading(true);
         const mediaEndpoint = isTvSeries ? 'tv' : 'movie';
 
-        // 1. Fetch basic details (Movie or TV)
+        // 1. Fetch basic details
         const res = await fetch(`${BASE_URL}/${mediaEndpoint}/${id}?api_key=${API_KEY}`);
         const data = await res.json();
         setMovie(data);
@@ -44,12 +41,10 @@ function MovieDetails() {
         // 2. Fetch videos for trailer
         const videoRes = await fetch(`${BASE_URL}/${mediaEndpoint}/${id}/videos?api_key=${API_KEY}`);
         const videoData = await videoRes.json();
-        
         if (videoData.results && videoData.results.length > 0) {
           const foundVideo = videoData.results.find(
             (vid) => vid.site === "YouTube" && (vid.type === "Trailer" || vid.type === "Teaser" || vid.type === "Clip")
           ) || videoData.results.find((vid) => vid.site === "YouTube");
-
           setTrailerKey(foundVideo ? foundVideo.key : null);
         } else {
           setTrailerKey(null);
@@ -82,30 +77,58 @@ function MovieDetails() {
 
   const favorite = isFavorite(movie.id);
   const bookmarked = inWatchlist(movie.id);
-
-  // Fallbacks for Movie vs TV properties
-  const title = movie.title || movie.name;
+  
   const releaseDate = movie.release_date || movie.first_air_date;
+  const rawTitle = movie.title || movie.name || "";
+  const title = rawTitle;
 
+  const encodedTitle = encodeURIComponent(rawTitle);
+  const releaseYear = releaseDate?.split("-")[0] || "";
+
+  // Dynamic YouTube Search URL for full movie/series streams & content
+  const youtubeSearchUrl = `https://www.youtube.com/results?search_query=${encodeURIComponent(`${rawTitle} ${releaseYear} full movie`)}`;
+
+  // Official & Subscription Streaming Platforms
+  const officialPlatforms = [
+    {
+      name: "Search Full Movie on YouTube",
+      icon: "▶️",
+      color: "#ff0000",
+      url: youtubeSearchUrl
+    },
+    {
+      name: "Prime Video",
+      icon: "📺",
+      color: "#00A8E1",
+      url: `https://www.amazon.com/s?k=${encodedTitle}&i=instant-video`
+    },
+    {
+      name: "Google Play / Apple TV",
+      icon: "🎬",
+      color: "#ea4335",
+      url: `https://play.google.com/store/search?q=${encodedTitle}&c=movies`
+    }
+  ];
+  
   return (
     <div className="movie-details-container">
-      <div 
-        className="backdrop-banner" 
+      <div
+        className="backdrop-banner"
         style={{
-          backgroundImage: movie.backdrop_path 
-            ? `url(https://image.tmdb.org/t/p/original${movie.backdrop_path})` 
+          backgroundImage: movie.backdrop_path
+            ? `url(https://image.tmdb.org/t/p/original${movie.backdrop_path})`
             : 'none'
         }}
       >
         <div className="backdrop-overlay">
           <div className="details-header">
-            <img 
+            <img
               src={
-                movie.poster_path 
-                  ? `https://image.tmdb.org/t/p/w500${movie.poster_path}` 
+                movie.poster_path
+                  ? `https://image.tmdb.org/t/p/w500${movie.poster_path}`
                   : "https://via.placeholder.com/500x750?text=No+Poster"
-              } 
-              alt={title} 
+              }
+              alt={title}
               className="details-poster"
             />
             <div className="details-info">
@@ -118,32 +141,41 @@ function MovieDetails() {
                 ))}
               </div>
 
+              {/* Series Season/Episode Metadata */}
+              {isTvSeries && (
+                <div className="series-meta-row" style={{ display: "flex", gap: "10px", margin: "4px 0" }}>
+                  <span className="series-badge" style={{ background: "rgba(30, 41, 59, 0.9)", border: "1px solid #3b82f6", color: "#60a5fa", padding: "4px 10px", borderRadius: "8px", fontSize: "0.85rem", fontWeight: "700" }}>
+                    📺 {movie.number_of_seasons || 1} {movie.number_of_seasons === 1 ? "Season" : "Seasons"}
+                  </span>
+                  <span className="series-badge" style={{ background: "rgba(30, 41, 59, 0.9)", border: "1px solid #3b82f6", color: "#60a5fa", padding: "4px 10px", borderRadius: "8px", fontSize: "0.85rem", fontWeight: "700" }}>
+                    🎬 {movie.number_of_episodes || "N/A"} Episodes
+                  </span>
+                </div>
+              )}
+
               <p className="overview">{movie.overview || "No overview available for this title."}</p>
-              <p>⭐ <strong>Rating:</strong> {movie.vote_average ? movie.vote_average.toFixed(1) : "N/A"} / 10</p>
-              
+              <p><strong>Rating:</strong> {movie.vote_average ? movie.vote_average.toFixed(1) : "N/A"} / 10</p>
               <p>
-                ⏱️ <strong>Runtime:</strong>{" "}
+                <strong>Runtime:</strong>{" "}
                 {movie.runtime || (movie.episode_run_time && movie.episode_run_time[0])
-                  ? `${movie.runtime || movie.episode_run_time[0]} mins` 
+                  ? `${movie.runtime || movie.episode_run_time[0]} mins`
                   : "Not specified"}
               </p>
 
-              {/* Action Buttons Container */}
               <div className="action-buttons-group">
-                <button 
+                <button
                   className={`fav-btn ${favorite ? "active" : ""}`}
                   onClick={() => favorite ? removeFromFavorites(movie.id) : addToFavorites(movie)}
                   type="button"
                 >
-                  {favorite ? "❤️ Remove Favorite" : "🤍 Add to Favorites"}
+                  {favorite ? "♥ Remove Favorite" : "♡ Add to Favorites"}
                 </button>
-
-                <button 
+                <button
                   className={`watchlist-btn ${bookmarked ? "active" : ""}`}
                   onClick={() => bookmarked ? removeFromWatchlist(movie.id) : addToWatchlist(movie)}
                   type="button"
                 >
-                  {bookmarked ? "🔖 In Watchlist" : "📌 Add to Watchlist"}
+                  {bookmarked ? "✓ In Watchlist" : "+ Add to Watchlist"}
                 </button>
               </div>
             </div>
@@ -151,17 +183,7 @@ function MovieDetails() {
         </div>
       </div>
 
-      {/* Streaming Section */}
-      <div className="trailer-section streaming-player-section">
-        <h2>🎥 Watch Full Streaming (HD Stream)</h2>
-        <MoviePlayer 
-          movieId={movie.id} 
-          mediaType={isTvSeries ? 'tv' : 'movie'} 
-          title={title} 
-        />
-      </div>
-        
-      {/* Trailer Section */}
+      {/* Official Trailer Section */}
       <div className="trailer-section">
         <h2>Official Trailer</h2>
         {trailerKey ? (
@@ -202,6 +224,56 @@ function MovieDetails() {
           </div>
         </div>
       )}
+
+      {/* Unified Streaming & Watch Hub */}
+      <div className="watch-download-hub" style={{
+        backgroundColor: "#1e293b",
+        padding: "24px",
+        borderRadius: "14px",
+        border: "1px solid #334155",
+        margin: "32px 0"
+      }}>
+        <h3 style={{ color: "#ffffff", fontSize: "1.2rem", marginBottom: "8px" }}>
+          🌍 Streaming & Watch Hub
+        </h3>
+        <p style={{ color: "#94a3b8", fontSize: "0.9rem", marginBottom: "20px" }}>
+          Find full videos, streams, or licensed platforms for <strong>{title}</strong>:
+        </p>
+
+        {/* Streaming Platforms Row */}
+        <div>
+          <h4 style={{ color: "#cbd5e1", fontSize: "0.82rem", textTransform: "uppercase", letterSpacing: "1px", marginBottom: "10px" }}>
+            Available Web Links
+          </h4>
+          <div style={{ display: "flex", gap: "10px", flexWrap: "wrap" }}>
+            {officialPlatforms.map((platform) => (
+              <a
+                key={platform.name}
+                href={platform.url}
+                target="_blank"
+                rel="noopener noreferrer"
+                style={{
+                  backgroundColor: "#0f172a",
+                  border: `1px solid ${platform.color}`,
+                  color: "#ffffff",
+                  padding: "10px 16px",
+                  borderRadius: "10px",
+                  textDecoration: "none",
+                  fontWeight: "600",
+                  fontSize: "0.85rem",
+                  display: "inline-flex",
+                  alignItems: "center",
+                  gap: "8px",
+                  transition: "transform 0.2s ease"
+                }}
+              >
+                <span>{platform.icon}</span>
+                <span>{platform.name}</span>
+              </a>
+            ))}
+          </div>
+        </div>
+      </div>
 
       {/* Recommendations Section */}
       {recommendations.length > 0 && (
