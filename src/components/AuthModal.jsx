@@ -14,6 +14,7 @@ export default function AuthModal({ isOpen, onClose }) {
   const [isLoading, setIsLoading] = useState(false);
   const [statusMessage, setStatusMessage] = useState({ text: "", type: "" });
 
+  // Only reset fields when the modal first opens, preserving email during view switches
   useEffect(() => {
     if (isOpen) {
       setEmail("");
@@ -23,8 +24,9 @@ export default function AuthModal({ isOpen, onClose }) {
       setShowPassword(false);
       setIsLoading(false);
       setStatusMessage({ text: "", type: "" });
+      setViewMode("login");
     }
-  }, [isOpen, viewMode]);
+  }, [isOpen]);
 
   if (!isOpen) return null;
 
@@ -47,7 +49,13 @@ export default function AuthModal({ isOpen, onClose }) {
           text: "Password updated successfully! Redirecting to Sign In...",
           type: "success"
         });
-        setTimeout(() => setViewMode("login"), 1500);
+        // Keep the email intact so the user can log right back in with it
+        setTimeout(() => {
+          setViewMode("login");
+          setPassword("");
+          setNewPassword("");
+          setStatusMessage({ text: "", type: "" });
+        }, 1500);
       } else if (viewMode === "login") {
         login(email, password);
         onClose();
