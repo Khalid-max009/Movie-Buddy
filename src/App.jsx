@@ -56,7 +56,7 @@ function AppContent() {
             element={
               preferences?.onboardingComplete 
                 ? <Navigate to="/feed" replace /> 
-                : <Navigate to="/explore" replace />
+                : <Navigate to="/home" replace />
             } 
           />
           
@@ -79,7 +79,7 @@ function AppContent() {
       <OnboardingModal 
         isOpen={showOnboarding} 
         onComplete={() => {
-          navigate("/explore", { replace: true });
+          navigate("/home", { replace: true });
         }} 
       />
 
