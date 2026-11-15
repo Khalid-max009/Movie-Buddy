@@ -14,7 +14,7 @@ export const AuthProvider = ({ children }) => {
   const [loading, setLoading] = useState(true);
 
   // Load user's profile (preferences & cached recommendations) from Supabase safely
-   const loadUserProfile = async (authUser) => {
+  const loadUserProfile = async (authUser) => {
     if (!authUser) {
       setUser(null);
       setPreferences(DEFAULT_PREFS);
@@ -122,38 +122,25 @@ export const AuthProvider = ({ children }) => {
       throw new Error(error.message);
     }
 
-    // 2. Automatically trigger your Resend welcome email
+    // 2. Trigger the Vercel Serverless Function to send the welcome email securely
     try {
-      await fetch("https://api.resend.com/emails", {
+      const emailResponse = await fetch("/api/send-email", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
-          "Authorization": `Bearer ${import.meta.env.VITE_RESEND_API_KEY}`,
         },
         body: JSON.stringify({
-          from: "MovieBuddy <onboarding@resend.dev>",
-          to: [trimmedEmail],
-          subject: `Welcome to MovieBuddy, ${displayName}!`,
-          html: `
-            <h2>Hello ${displayName},</h2>
-            <p>Welcome to MovieBuddy! We are thrilled to have you onboard. Your account is now active, allowing you to seamlessly track your personal watchlist, save your favorite films, and explore custom recommendations.</p>
-            <hr style="border: none; border-top: 1px solid #eee; margin: 20px 0;" />
-            <h3>💻 Built by Kazeem Khalid</h3>
-            <p>MovieBuddy is a high-performance web application engineered and designed by <strong>Kazeem Khalid</strong>, a professional frontend and full-stack web developer dedicated to building responsive, feature-rich, and user-centric digital experiences.</p>
-            <p>If you have any feedback, project inquiries, or would like to collaborate, let's connect:</p>
-            <ul>
-              <li><strong>Email:</strong> <a href="mailto:khalidolaonipekun43@gmail.com">khalidolaonipekun43@gmail.com</a></li>
-              <li><strong>WhatsApp:</strong> <a href="https://wa.me/2349063990709" target="_blank">Chat with me on WhatsApp</a></li>
-            </ul>
-            <p style="margin-top: 30px;">
-              <a href="${window.location.origin}" style="background: #e50914; color: white; padding: 12px 20px; text-decoration: none; border-radius: 6px; font-weight: bold;">
-                Jump Back Into MovieBuddy 🚀
-              </a>
-            </p>
-          `,
+          email: trimmedEmail,
+          name: displayName,
         }),
       });
-      console.log("✅ Welcome email dispatched successfully via Resend!");
+
+      const emailResult = await emailResponse.json();
+      if (!emailResponse.ok) {
+        throw new Error(emailResult.error || "Failed to dispatch email");
+      }
+
+      console.log("✅ Welcome email dispatched successfully via Vercel API!");
     } catch (emailErr) {
       // Prevents email failure from breaking the signup process
       console.warn("⚠️ Welcome email dispatch failed:", emailErr.message);
