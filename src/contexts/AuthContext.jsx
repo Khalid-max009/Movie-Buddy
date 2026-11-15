@@ -109,41 +109,18 @@ export const AuthProvider = ({ children }) => {
       throw new Error("Password must be at least 6 characters long.");
     }
 
-    // 1. Create the user in Supabase Auth
+    // 1. Create the user in Supabase Auth (Supabase handles the confirmation email natively)
     const { data, error } = await supabase.auth.signUp({
       email: trimmedEmail,
       password,
       options: {
         data: { full_name: displayName },
+        emailRedirectTo: `${window.location.origin}/onboarding`,
       },
     });
 
     if (error) {
       throw new Error(error.message);
-    }
-
-    // 2. Trigger the Vercel Serverless Function to send the welcome email securely
-    try {
-      const emailResponse = await fetch("/api/send-email", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          email: trimmedEmail,
-          name: displayName,
-        }),
-      });
-
-      const emailResult = await emailResponse.json();
-      if (!emailResponse.ok) {
-        throw new Error(emailResult.error || "Failed to dispatch email");
-      }
-
-      console.log("✅ Welcome email dispatched successfully via Vercel API!");
-    } catch (emailErr) {
-      // Prevents email failure from breaking the signup process
-      console.warn("⚠️ Welcome email dispatch failed:", emailErr.message);
     }
 
     // Initialize clean onboarding state for the new user
