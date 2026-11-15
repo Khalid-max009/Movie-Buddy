@@ -14,7 +14,7 @@ export const AuthProvider = ({ children }) => {
   const [loading, setLoading] = useState(true);
 
   // Load user's profile (preferences & cached recommendations) from Supabase safely
-  const loadUserProfile = async (authUser) => {
+   const loadUserProfile = async (authUser) => {
     if (!authUser) {
       setUser(null);
       setPreferences(DEFAULT_PREFS);
@@ -22,18 +22,12 @@ export const AuthProvider = ({ children }) => {
       return;
     }
 
-    const displayName =
-      authUser.user_metadata?.full_name ||
-      authUser.email.split("@")[0];
-
-    setUser({
-      id: authUser.id,
-      email: authUser.email,
-      name: displayName,
-    });
+    let displayName =
+      authUser.user_metadata?.full_name || authUser.email.split("@")[0];
+    let resolvedPrefs = DEFAULT_PREFS;
+    let resolvedRecs = [];
 
     try {
-      // Use .maybeSingle() instead of .single() so it never hangs or errors out if the profile row is still creating
       const { data, error } = await supabase
         .from("profiles")
         .select("full_name, preferences, recommendations")
@@ -41,15 +35,22 @@ export const AuthProvider = ({ children }) => {
         .maybeSingle();
 
       if (!error && data) {
-        if (data.full_name) {
-          setUser((prev) => ({ ...prev, name: data.full_name }));
-        }
-        setPreferences(data.preferences || DEFAULT_PREFS);
-        setRecommendations(data.recommendations || []);
+        if (data.full_name) displayName = data.full_name;
+        if (data.preferences) resolvedPrefs = data.preferences;
+        if (data.recommendations) resolvedRecs = data.recommendations;
       }
     } catch (err) {
       console.warn("Profile fetch warning (using defaults):", err.message);
     }
+
+    // Update all states together so React renders once with the true onboarding status
+    setPreferences(resolvedPrefs);
+    setRecommendations(resolvedRecs);
+    setUser({
+      id: authUser.id,
+      email: authUser.email,
+      name: displayName,
+    });
   };
 
   useEffect(() => {

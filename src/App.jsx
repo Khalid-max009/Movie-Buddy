@@ -22,18 +22,17 @@ function AppContent() {
 
   // Automatically navigate upon login / signup transition
   useEffect(() => {
-    // Detect the transition from logged out (null) to logged in (user active)
     if (!prevUserRef.current && user) {
       if (!preferences?.onboardingComplete) {
-        // New user: land on Explore/Home (OnboardingModal will pop up over it)
-        navigate("/explore", { replace: true });
+        // New user: land on Home (OnboardingModal will pop up over it)
+        navigate("/home", { replace: true });
       } else {
         // Existing user: land directly on Daily Feed
         navigate("/feed", { replace: true });
       }
     }
     prevUserRef.current = user;
-  }, [user, preferences, navigate]);
+  }, [user, preferences?.onboardingComplete, navigate]);
 
   // 1. STRICT AUTH GATE: Every visitor MUST authenticate first
   if (!user) {
@@ -50,7 +49,6 @@ function AppContent() {
 
       <main className="main-content">
         <Routes>
-          {/* Default entry fallback redirects based on user onboarding status */}
           <Route 
             path="/" 
             element={
@@ -79,7 +77,7 @@ function AppContent() {
       <OnboardingModal 
         isOpen={showOnboarding} 
         onComplete={() => {
-          navigate("/home", { replace: true });
+          navigate("/feed", { replace: true });
         }} 
       />
 
@@ -91,9 +89,9 @@ function AppContent() {
 export default function App() {
   return (
     <AuthProvider>
-  <MovieProvider>
-    <AppContent />
-  </MovieProvider>
-</AuthProvider>
+      <MovieProvider>
+        <AppContent />
+      </MovieProvider>
+    </AuthProvider>
   );
 }
