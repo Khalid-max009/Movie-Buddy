@@ -1,114 +1,233 @@
- import { createContext, useContext, useState, useEffect } from "react";
+import { createContext, useContext, useState, useEffect } from "react";
+import { supabase } from "../services/supabaseClient";
 
 const AuthContext = createContext();
+
+const DEFAULT_PREFS = { genres: [], countries: [], onboardingComplete: false };
 
 export const useAuth = () => useContext(AuthContext);
 
 export const AuthProvider = ({ children }) => {
-  // Always start user as null so EVERY visitor must authenticate on site launch
   const [user, setUser] = useState(null);
+  const [preferences, setPreferences] = useState(DEFAULT_PREFS);
+  const [recommendations, setRecommendations] = useState([]);
+  const [loading, setLoading] = useState(true);
 
-  const [registeredUsers, setRegisteredUsers] = useState(() => {
+  // Load user's profile (preferences & cached recommendations) from Supabase safely
+  const loadUserProfile = async (authUser) => {
+    if (!authUser) {
+      setUser(null);
+      setPreferences(DEFAULT_PREFS);
+      setRecommendations([]);
+      return;
+    }
+
+    const displayName =
+      authUser.user_metadata?.full_name ||
+      authUser.email.split("@")[0];
+
+    setUser({
+      id: authUser.id,
+      email: authUser.email,
+      name: displayName,
+    });
+
     try {
-      const savedList = localStorage.getItem("mb_registered_users");
-      return savedList ? JSON.parse(savedList) : [];
+      // Use .maybeSingle() instead of .single() so it never hangs or errors out if the profile row is still creating
+      const { data, error } = await supabase
+        .from("profiles")
+        .select("full_name, preferences, recommendations")
+        .eq("id", authUser.id)
+        .maybeSingle();
+
+      if (!error && data) {
+        if (data.full_name) {
+          setUser((prev) => ({ ...prev, name: data.full_name }));
+        }
+        setPreferences(data.preferences || DEFAULT_PREFS);
+        setRecommendations(data.recommendations || []);
+      }
     } catch (err) {
-      return [];
+      console.warn("Profile fetch warning (using defaults):", err.message);
     }
-  });
-
-  const [preferences, setPreferences] = useState(() => {
-    try {
-      const savedPrefs = localStorage.getItem("mb_user_preferences");
-      return savedPrefs ? JSON.parse(savedPrefs) : { genres: [], countries: [], onboardingComplete: false };
-    } catch (err) {
-      return { genres: [], countries: [], onboardingComplete: false };
-    }
-  });
-
-  useEffect(() => {
-    localStorage.setItem("mb_registered_users", JSON.stringify(registeredUsers));
-  }, [registeredUsers]);
-
-  useEffect(() => {
-    localStorage.setItem("mb_user_preferences", JSON.stringify(preferences));
-  }, [preferences]);
-
-  const login = (email, password) => {
-    const trimmedEmail = email.trim().toLowerCase();
-    const existingUser = registeredUsers.find((u) => u.email.toLowerCase() === trimmedEmail);
-    
-    if (!existingUser) {
-      throw new Error("No account found with this email. Please sign up first.");
-    }
-
-    if (existingUser.password !== password) {
-      throw new Error("Incorrect password. Please try again.");
-    }
-
-    const userData = { email: existingUser.email, name: existingUser.name };
-    setUser(userData);
   };
 
-  const signup = (email, name, password) => {
-    const trimmedEmail = email.trim().toLowerCase();
-    const emailExists = registeredUsers.some((u) => u.email.toLowerCase() === trimmedEmail);
+  useEffect(() => {
+    let isMounted = true;
 
-    if (emailExists) {
-      throw new Error("An account with this email already exists. Please sign in instead.");
+    // Safety timeout: Guarantees loading state clears after 6 seconds max no matter what
+    const safetyTimer = setTimeout(() => {
+      if (isMounted && loading) {
+        console.warn("Auth initialization safety timeout triggered.");
+        setLoading(false);
+      }
+    }, 6000);
+
+    // Check active session on page load
+    supabase.auth.getSession().then(async ({ data: { session } }) => {
+      if (!isMounted) return;
+      await loadUserProfile(session?.user ?? null);
+      if (isMounted) setLoading(false);
+    });
+
+    // Listen for auth changes (login, signup, logout)
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(
+      async (_event, session) => {
+        if (!isMounted) return;
+        await loadUserProfile(session?.user ?? null);
+        if (isMounted) setLoading(false);
+      }
+    );
+
+    return () => {
+      isMounted = false;
+      clearTimeout(safetyTimer);
+      subscription.unsubscribe();
+    };
+  }, []);
+
+  const login = async (email, password) => {
+    const { data, error } = await supabase.auth.signInWithPassword({
+      email: email.trim().toLowerCase(),
+      password,
+    });
+
+    if (error) {
+      throw new Error(error.message || "Invalid email or password.");
     }
+
+    await loadUserProfile(data.user);
+    return data.user;
+  };
+
+  const signup = async (email, name, password) => {
+    const trimmedEmail = email.trim().toLowerCase();
+    const displayName = name?.trim() || trimmedEmail.split("@")[0];
 
     if (!password || password.length < 6) {
       throw new Error("Password must be at least 6 characters long.");
     }
 
-    const newUser = { email: trimmedEmail, name: name || email.split("@")[0], password };
-    const updatedUsers = [...registeredUsers, newUser];
-    
-    // Reset preferences for new user onboarding
-    const initialPrefs = { genres: [], countries: [], onboardingComplete: false };
-    setPreferences(initialPrefs);
-    localStorage.setItem("mb_user_preferences", JSON.stringify(initialPrefs));
+    // 1. Create the user in Supabase Auth
+    const { data, error } = await supabase.auth.signUp({
+      email: trimmedEmail,
+      password,
+      options: {
+        data: { full_name: displayName },
+      },
+    });
 
-    setRegisteredUsers(updatedUsers);
-    setUser({ email: newUser.email, name: newUser.name });
+    if (error) {
+      throw new Error(error.message);
+    }
+
+    // 2. Automatically trigger your Resend welcome email
+    try {
+      await fetch("https://api.resend.com/emails", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "Authorization": `Bearer ${import.meta.env.VITE_RESEND_API_KEY}`,
+        },
+        body: JSON.stringify({
+          from: "MovieBuddy <onboarding@resend.dev>",
+          to: [trimmedEmail],
+          subject: `Welcome to MovieBuddy, ${displayName}!`,
+          html: `
+            <h2>Hello ${displayName},</h2>
+            <p>Welcome to MovieBuddy! We are thrilled to have you onboard. Your account is now active, allowing you to seamlessly track your personal watchlist, save your favorite films, and explore custom recommendations.</p>
+            <hr style="border: none; border-top: 1px solid #eee; margin: 20px 0;" />
+            <h3>💻 Built by Kazeem Khalid</h3>
+            <p>MovieBuddy is a high-performance web application engineered and designed by <strong>Kazeem Khalid</strong>, a professional frontend and full-stack web developer dedicated to building responsive, feature-rich, and user-centric digital experiences.</p>
+            <p>If you have any feedback, project inquiries, or would like to collaborate, let's connect:</p>
+            <ul>
+              <li><strong>Email:</strong> <a href="mailto:khalidolaonipekun43@gmail.com">khalidolaonipekun43@gmail.com</a></li>
+              <li><strong>WhatsApp:</strong> <a href="https://wa.me/2349063990709" target="_blank">Chat with me on WhatsApp</a></li>
+            </ul>
+            <p style="margin-top: 30px;">
+              <a href="${window.location.origin}" style="background: #e50914; color: white; padding: 12px 20px; text-decoration: none; border-radius: 6px; font-weight: bold;">
+                Jump Back Into MovieBuddy 🚀
+              </a>
+            </p>
+          `,
+        }),
+      });
+      console.log("✅ Welcome email dispatched successfully via Resend!");
+    } catch (emailErr) {
+      // Prevents email failure from breaking the signup process
+      console.warn("⚠️ Welcome email dispatch failed:", emailErr.message);
+    }
+
+    // Initialize clean onboarding state for the new user
+    setPreferences(DEFAULT_PREFS);
+    setRecommendations([]);
+    if (data.user) {
+      setUser({ id: data.user.id, email: trimmedEmail, name: displayName });
+    }
+    return data.user;
   };
-  
-  const logout = () => {
+
+  const logout = async () => {
+    await supabase.auth.signOut();
     setUser(null);
+    setPreferences(DEFAULT_PREFS);
+    setRecommendations([]);
   };
 
-  const savePreferences = (newPrefs) => {
-    setPreferences({ ...newPrefs, onboardingComplete: true });
+  // Saves genres & countries from OnboardingModal directly to Supabase
+  const savePreferences = async (newPrefs) => {
+    const updatedPrefs = { ...newPrefs, onboardingComplete: true };
+    setPreferences(updatedPrefs);
+
+    if (user?.id) {
+      const { error } = await supabase
+        .from("profiles")
+        .update({ preferences: updatedPrefs, updated_at: new Date() })
+        .eq("id", user.id);
+
+      if (error) console.error("Failed to save preferences:", error.message);
+    }
   };
 
-  const resetPassword = (email, newPassword) => {
-    const trimmedEmail = email.trim().toLowerCase();
-    const existingIndex = registeredUsers.findIndex((u) => u.email.toLowerCase() === trimmedEmail);
+  // Saves AI / TMDB "Recommended for You" movies to Supabase
+  const saveRecommendations = async (recsArray) => {
+    setRecommendations(recsArray);
 
-    if (existingIndex === -1) {
-      throw new Error("No account found with this email.");
+    if (user?.id) {
+      const { error } = await supabase
+        .from("profiles")
+        .update({ recommendations: recsArray, updated_at: new Date() })
+        .eq("id", user.id);
+
+      if (error) console.error("Failed to save recommendations:", error.message);
     }
+  };
 
-    if (!newPassword || newPassword.length < 6) {
-      throw new Error("New password must be at least 6 characters long.");
-    }
-
-    const updatedUsers = [...registeredUsers];
-    updatedUsers[existingIndex].password = newPassword;
-
-    setRegisteredUsers(updatedUsers);
+  // Sends a secure password reset email via Supabase Auth
+  const resetPassword = async (email) => {
+    const { error } = await supabase.auth.resetPasswordForEmail(
+      email.trim().toLowerCase(),
+      { redirectTo: window.location.origin }
+    );
+    if (error) throw new Error(error.message);
   };
 
   const value = {
     user,
+    loading,
     login,
     signup,
     logout,
     preferences,
     savePreferences,
+    recommendations,
+    saveRecommendations,
     resetPassword,
   };
 
-  return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
+  return (
+    <AuthContext.Provider value={value}>
+      {!loading && children}
+    </AuthContext.Provider>
+  );
 };

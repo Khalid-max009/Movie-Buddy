@@ -33,7 +33,7 @@ const COUNTRIES = [
   { code: "EG", name: "Egypt", flag: "EG" },
   { code: "TN", name: "Tunisia", flag: "TN" },
   { code: "MA", name: "Morocco", flag: "MA" },
-  { code: "PH", name: "Philippines", flag: "PH" }
+ 
 
 ];
 

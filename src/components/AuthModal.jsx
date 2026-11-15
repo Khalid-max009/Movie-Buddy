@@ -17,6 +17,7 @@ export default function AuthModal({ isOpen, onClose }) {
   // Only reset fields when the modal first opens, preserving email during view switches
   useEffect(() => {
     if (isOpen) {
+      console.log("🔍 AuthModal opened. Resetting fields.");
       setEmail("");
       setName("");
       setPassword("");
@@ -34,38 +35,49 @@ export default function AuthModal({ isOpen, onClose }) {
     e.preventDefault();
     if (isLoading) return;
 
+    console.log("🚀 handleSubmit triggered. Current viewMode:", viewMode);
+    console.log("📧 Input Email:", email);
+
     setIsLoading(true);
     setStatusMessage({ text: "", type: "" });
 
     try {
-      await new Promise((resolve) => setTimeout(resolve, 400));
-
       if (viewMode === "forgot") {
-        if (!email || !newPassword) {
-          throw new Error("Please fill in all fields.");
+        if (!email) {
+          throw new Error("Please enter your email address.");
         }
-        resetPassword(email, newPassword);
+        console.log("🔄 Calling resetPassword...");
+        await resetPassword(email);
+        console.log("✅ resetPassword succeeded.");
+        
         setStatusMessage({
-          text: "Password updated successfully! Redirecting to Sign In...",
+          text: "Password reset link sent! Check your email inbox.",
           type: "success"
         });
-        // Keep the email intact so the user can log right back in with it
+        
         setTimeout(() => {
           setViewMode("login");
-          setPassword("");
           setNewPassword("");
           setStatusMessage({ text: "", type: "" });
-        }, 1500);
+        }, 2500);
+
       } else if (viewMode === "login") {
-        login(email, password);
+        console.log("🔄 Calling login...");
+        await login(email, password);
+        console.log("✅ login succeeded.");
         onClose();
+
       } else if (viewMode === "signup") {
-        signup(email, name, password);
+        console.log("🔄 Calling signup with name:", name);
+        await signup(email, name, password);
+        console.log("✅ signup succeeded.");
         onClose();
       }
     } catch (err) {
+      console.error("❌ Auth Error caught in handleSubmit:", err.message);
       setStatusMessage({ text: err.message, type: "error" });
     } finally {
+      console.log("🏁 handleSubmit finished. Resetting isLoading to false.");
       setIsLoading(false);
     }
   };

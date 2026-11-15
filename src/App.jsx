@@ -90,10 +90,10 @@ function AppContent() {
 
 export default function App() {
   return (
-    <MovieProvider>
-      <AuthProvider>
-        <AppContent />
-      </AuthProvider>
-    </MovieProvider>
+    <AuthProvider>
+  <MovieProvider>
+    <AppContent />
+  </MovieProvider>
+</AuthProvider>
   );
 }

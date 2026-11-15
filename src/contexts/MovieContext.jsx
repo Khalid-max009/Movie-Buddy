@@ -1,11 +1,12 @@
- import { createContext, useState, useContext, useEffect } from "react";
+import { createContext, useState, useContext, useEffect } from "react";
+import { supabase } from "../services/supabaseClient";
 
 const MovieContext = createContext();
 
 export const useMovieContext = () => useContext(MovieContext);
 
 export const MovieProvider = ({ children }) => {
-  // Initialize favorites state directly from LocalStorage
+  // Initialize favorites state directly from LocalStorage for instant loading
   const [favorites, setFavorites] = useState(() => {
     try {
       const localData = localStorage.getItem("app_favorites");
@@ -34,34 +35,28 @@ export const MovieProvider = ({ children }) => {
     setToast({ message, type });
   };
 
-  // 1. State initialization
-const [theme, setTheme] = useState(() => {
-  return localStorage.getItem("app_theme") || "dark";
-});
+  // Theme State
+  const [theme, setTheme] = useState(() => {
+    return localStorage.getItem("app_theme") || "dark";
+  });
 
-// 2. DOM Sync (DO NOT call setTheme in here!)
-useEffect(() => {
-  document.documentElement.setAttribute("data-theme", theme);
-  localStorage.setItem("app_theme", theme);
-}, [theme]);
+  useEffect(() => {
+    document.documentElement.setAttribute("data-theme", theme);
+    localStorage.setItem("app_theme", theme);
+  }, [theme]);
 
-// 3. Toggle Function
-const toggleTheme = () => {
-  setTheme((prev) => (prev === "dark" ? "light" : "dark"));
-};
+  const toggleTheme = () => {
+    setTheme((prev) => (prev === "dark" ? "light" : "dark"));
+  };
 
-   // Toast auto-dismiss timer
+  // Toast auto-dismiss timer
   useEffect(() => {
     if (!toast) return;
-
-    const timer = setTimeout(() => {
-      setToast(null);
-    }, 3000);
-
+    const timer = setTimeout(() => setToast(null), 3000);
     return () => clearTimeout(timer);
   }, [toast]);
 
-  // Sync favorites to localStorage
+  // Sync favorites to localStorage instantly
   useEffect(() => {
     try {
       localStorage.setItem("app_favorites", JSON.stringify(favorites));
@@ -70,7 +65,7 @@ const toggleTheme = () => {
     }
   }, [favorites]);
 
-  // Sync watchlist to localStorage
+  // Sync watchlist to localStorage instantly
   useEffect(() => {
     try {
       localStorage.setItem("app_watchlist", JSON.stringify(watchlist));
@@ -79,27 +74,54 @@ const toggleTheme = () => {
     }
   }, [watchlist]);
 
+  // Optional background cloud sync (Non-blocking, safe from infinite hangs)
+  const syncToCloudInBackground = async (updatedFavorites, updatedWatchlist) => {
+    try {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session?.user) return;
+
+      await supabase
+        .from("profiles")
+        .update({
+          favorites: updatedFavorites,
+          watchlist: updatedWatchlist,
+          updated_at: new Date(),
+        })
+        .eq("id", session.user.id);
+    } catch (err) {
+      console.warn("Background cloud sync skipped or offline:", err.message);
+    }
+  };
+
   // Favorite Handlers
   const addToFavorites = (movie) => {
+    let updated;
     setFavorites((prev) => {
       if (prev.some((m) => Number(m.id) === Number(movie.id))) return prev;
-      return [...prev, movie];
+      updated = [...prev, movie];
+      return updated;
     });
-    showToast(`Added "${movie.title}" to Favorites!`, "success");
+    if (updated) {
+      syncToCloudInBackground(updated, watchlist);
+      showToast(`Added "${movie.title}" to Favorites!`, "success");
+    }
   };
 
   const removeFromFavorites = (movieId) => {
     const targetId = Number(movieId);
-    
-    // 1. Find the movie BEFORE filtering it out
     const movieToRemove = favorites.find((movie) => Number(movie.id) === targetId);
 
-    // 2. Remove from state
-    setFavorites((prev) => prev.filter((movie) => Number(movie.id) !== targetId));
+    let updated;
+    setFavorites((prev) => {
+      updated = prev.filter((movie) => Number(movie.id) !== targetId);
+      return updated;
+    });
 
-    // 3. Trigger toast using retrieved title
-    const title = movieToRemove ? movieToRemove.title : "Movie";
-    showToast(`Removed "${title}" from Favorites`, "info");
+    if (updated) {
+      syncToCloudInBackground(updated, watchlist);
+      const title = movieToRemove ? movieToRemove.title : "Movie";
+      showToast(`Removed "${title}" from Favorites`, "info");
+    }
   };
 
   const isFavorite = (movieId) => {
@@ -108,25 +130,33 @@ const toggleTheme = () => {
 
   // Watchlist Handlers
   const addToWatchlist = (movie) => {
+    let updated;
     setWatchlist((prev) => {
       if (prev.some((m) => Number(m.id) === Number(movie.id))) return prev;
-      return [...prev, { ...movie, watched: false }];
+      updated = [...prev, { ...movie, watched: false }];
+      return updated;
     });
-    showToast(`Added "${movie.title}" to Watchlist!`, "success");
+    if (updated) {
+      syncToCloudInBackground(favorites, updated);
+      showToast(`Added "${movie.title}" to Watchlist!`, "success");
+    }
   };
 
   const removeFromWatchlist = (movieId) => {
     const targetId = Number(movieId);
-
-    // 1. Find the movie BEFORE filtering it out
     const movieToRemove = watchlist.find((movie) => Number(movie.id) === targetId);
 
-    // 2. Remove from state
-    setWatchlist((prev) => prev.filter((movie) => Number(movie.id) !== targetId));
+    let updated;
+    setWatchlist((prev) => {
+      updated = prev.filter((movie) => Number(movie.id) !== targetId);
+      return updated;
+    });
 
-    // 3. Trigger toast using retrieved title
-    const title = movieToRemove ? movieToRemove.title : "Movie";
-    showToast(`Removed "${title}" from Watchlist`, "info");
+    if (updated) {
+      syncToCloudInBackground(favorites, updated);
+      const title = movieToRemove ? movieToRemove.title : "Movie";
+      showToast(`Removed "${title}" from Watchlist`, "info");
+    }
   };
 
   const inWatchlist = (movieId) => {
@@ -146,13 +176,19 @@ const toggleTheme = () => {
       );
     }
 
-    setWatchlist((prev) =>
-      prev.map((movie) =>
+    let updated;
+    setWatchlist((prev) => {
+      updated = prev.map((movie) =>
         Number(movie.id) === targetId
           ? { ...movie, watched: !movie.watched }
           : movie
-      )
-    );
+      );
+      return updated;
+    });
+
+    if (updated) {
+      syncToCloudInBackground(favorites, updated);
+    }
   };
 
   const value = {
