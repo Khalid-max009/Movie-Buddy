@@ -12,11 +12,20 @@
   font-weight: 700;
 }
 /* Movie Grid Layout for Favourites */
+ 
 .movies-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
-  gap: 24px;
+  grid-template-columns: repeat(2, minmax(140px, 1fr)); /* Forces a clean 2-column layout on mobile */
+  gap: 16px;
   width: 100%;
+  box-sizing: border-box;
+}
+
+/* Tablet & Desktop override so it scales back out on larger screens */
+@media (min-width: 768px) {
+  .movies-grid {
+    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+  }
 }
 
 /* Empty State */

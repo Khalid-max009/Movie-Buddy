@@ -1,26 +1,29 @@
-# 🎬 Movie-Buddy
+# 🎬 MovieBuddy
 
-**Movie-Buddy** is a high-performance, Netflix-inspired movie discovery web app built with **React**, **Vite**, and **CSS Modules**. Powered by the **TMDB API**, it features real-time debounced search, genre filtering, infinite pagination, and a personal movie progress tracker with dynamic state calculations. Engineered with custom inline SVGs for instant rendering and seamless light/dark mode adaptation.
+**MovieBuddy** is a high-performance, Netflix-inspired full-stack movie discovery web app built with **React**, **Vite**, **Supabase**, and **Tailwind/CSS**. Powered by the **TMDB API**, **Groq AI**, and **Brevo SMTP**, it features strict email-verified authentication, custom onboarding preference matching, a dynamic daily feed, and a responsive mobile-first UI architecture.
 
 ---
 
-## ✨ Features
+## ✨ Core Features
 
-- **⚡ Live Debounced Search**: Custom `useDebounce` hook optimizes API calls during typing.
-- **📊 Watchlist Progress Tracker**: State-driven completion percentage updated dynamically.
-- **🎨 Custom Inline SVGs**: Scalable, zero-overhead vector icons that adapt to light and dark themes.
-- **🌓 Light/Dark Mode**: Instant theme switching managed via React Context API.
-- **🍿 Deduplicated Pagination**: Smooth "Load More" fetching with automatic duplicate ID filtering.
+- **🔐 Strict Auth & Email Verification**: Secure user signups and logins via **Supabase Auth** integrated with **Brevo SMTP** transactional emails and custom HTML verification templates.
+- **🛡️ Protected Routing & Onboarding Gate**: Automated state-driven routing that routes brand-new users through a genre/region onboarding flow (landing on `/home`) and existing users directly to their personalized `/feed`.
+- **🤖 AI-Powered Movie Recommendations**: Context-aware assistant powered by **Groq AI** to find custom movie and series matches based on user prompts.
+- **⚡ Live Debounced Search & Filtering**: Optimized search handling release years, languages, and genres with zero UI lag.
+- **📊 Watchlist & Favourites Tracker**: Real-time state management for saving custom watchlists and tracking movie interests.
+- **📱 Mobile-First Responsive UI**: Custom CSS grid optimizations ensuring native-feeling 2-column card layouts on mobile devices with zero horizontal overflow.
 
 ---
 
 ## 🛠 Tech Stack
 
 - **Frontend**: React, React Router, Context API
+- **Backend & Database**: Supabase Auth, PostgreSQL Profiles Table
+- **Email Delivery**: Brevo SMTP Relay
+- **AI Integration**: Groq AI API
+- **Movie Data**: The Movie Database (TMDB) API
 - **Build Tool**: Vite
-- **Styling**: CSS Modules, CSS Variables
-- **API**: The Movie Database (TMDB) API
-- **Deployment**: Vercel
+- **Deployment**: Vercel (`reelfriend.vercel.app`)
 
 ---
 
@@ -29,3 +32,4 @@
 1. **Clone the repository**:
    ```bash
    git clone [https://github.com/Khalid-max009/movie-buddy.git](https://github.com/Khalid-max009/movie-buddy.git)
+   cd movie-buddy

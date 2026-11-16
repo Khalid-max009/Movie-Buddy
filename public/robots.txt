@@ -1,0 +1,6 @@
+User-agent: *
+Allow: /
+
+# Optional: If you want to block crawlers from private user dashboard routes (optional, but good practice)
+Disallow: /favorites
+Disallow: /watchlist
