@@ -4,7 +4,6 @@
   margin: 0 auto;
   min-height: calc(100vh - 80px);
 }
-
 /* Search Bar Styling */
 .search-form {
   display: flex;
@@ -14,7 +13,6 @@
   max-width: 550px;
   padding: 0 10px;
 }
-
 .search-input {
   flex: 1;
   padding: 12px 20px;
@@ -26,11 +24,9 @@
   outline: none;
   transition: border-color 0.2s ease;
 }
-
 .search-input:focus {
   border-color: #e50914; /* Red accent matching Netflix dark theme */
 }
-
 .search-button {
   padding: 12px 24px;
   background-color: #e50914;
@@ -41,13 +37,10 @@
   cursor: pointer;
   transition: background-color 0.2s ease, transform 0.1s ease;
 }
-
 .search-button:hover {
   background-color: #b80710;
   transform: translateY(-1px);
 }
-
-
 /* Desktop grid */
 .movies-grid {
   display: grid;
@@ -57,7 +50,6 @@
   width: 100%;
   box-sizing: border-box;
 }
-
 /* Two movie cards per row on phones */
 @media (max-width: 600px) {
   .movies-grid {
@@ -66,8 +58,6 @@
     padding: 8px;
   }
 }
-
-
  /* Feedback Statements */
 .loading-message,
 .error-message,
@@ -77,18 +67,15 @@
   font-size: 1.1rem;
   color: #94a3b8;
 }
-
 .error-message {
   color: #ef4444;
 }
-
 /* Load More Section */
 .load-more-container {
   display: flex;
   justify-content: center;
   margin: 40px 0 20px;
 }
-
 .load-more-btn {
   background-color: #e50914;
   color: #ffffff;
@@ -101,12 +88,10 @@
   transition: transform 0.2s ease, background-color 0.2s ease;
   box-shadow: 0 4px 12px rgba(229, 9, 20, 0.4);
 }
-
 .load-more-btn:hover {
   background-color: #b80710;
   transform: translateY(-2px);
 }
-
 .load-more-btn:active {
   transform: translateY(0);
 }
@@ -114,18 +99,15 @@
   display: flex;
   gap: 12px;
   overflow-x: auto;
-  
   /* SPACING ADJUSTMENTS */
-  margin-top: 24px;       
+  margin-top: 24px;      
   margin-bottom: 28px;    
-  padding: 8px 4px 12px 4px; 
-  
+  padding: 8px 4px 12px 4px;
   /* SMOOTH SCROLLING & CUSTOM SCROLLBAR */
   scroll-behavior: smooth;
   scrollbar-width: thin;  
   scrollbar-color: #333 transparent;
-
-  /* ADD THESE TWO LINES FOR MOBILE: */
+  /* ADD THESE TWO LINES FOR MOBILE: *
   -webkit-overflow-scrolling: touch; /* Momentum scrolling on iOS Safari */
   width: 100%;                       /* Prevents container from stretching past screen width */
 }
@@ -133,20 +115,16 @@
 .genre-container::-webkit-scrollbar {
   height: 6px; /* Makes the horizontal scrollbar super sleek */
 }
-
 .genre-container::-webkit-scrollbar-track {
   background: transparent; /* Removes white/grey track background */
 }
-
 .genre-container::-webkit-scrollbar-thumb {
   background-color: #333; /* Dark grey thumb that blends with the theme */
   border-radius: 10px;
 }
-
 .genre-container::-webkit-scrollbar-thumb:hover {
   background-color: #e50914; /* Turns red when hovered */
 }
-
 .genre-pill {
   background-color: #1a1a1a;
   color: #e5e5e5;
@@ -159,18 +137,15 @@
   cursor: pointer;
   transition: all 0.2s ease;
 }
-
 .genre-pill:hover {
   background-color: #333;
   color: #fff;
 }
-
 .genre-pill.active {
   background-color: #e50914; /* Netflix Red */
   color: #ffffff;
   border-color: #e50914;
 }
-
 .search-form {
   display: flex;
   gap: 12px;
@@ -179,7 +154,6 @@
   margin-bottom: 1.5rem;
   width: 100%;
 }
-
 .search-input-wrapper {
   position: relative;
   flex: 1;
@@ -187,13 +161,11 @@
   display: flex;
   align-items: center;
 }
-
 .search-input-wrapper .search-input {
   width: 100%;
   padding-right: 38px; /* Space for the 'X' clear button */
   box-sizing: border-box; /* Keeps padding inside the defined width */
 }
-
 .clear-search-btn {
   position: absolute;
   right: 12px;
@@ -207,13 +179,10 @@
   border-radius: 50%;
   transition: color 0.2s ease, background-color 0.2s ease;
 }
-
 .clear-search-btn:hover {
   color: var(--accent-color);
   background-color: var(--border-color);
 }
- 
-
 /* Sidebar styling */
 .filter-sidebar {
   width: 250px;
@@ -225,13 +194,11 @@
   position: sticky;
   top: 20px;
 }
-
 .filter-sidebar h3 {
   font-size: 1rem;
   color: #f8fafc;
   margin-bottom: 12px;
 }
-
 /* Country list scrollable container */
 .country-list {
   display: flex;
@@ -242,7 +209,6 @@
   margin-bottom: 20px;
   padding-right: 4px;
 }
-
 .country-sidebar-btn {
   display: flex;
   align-items: center;
@@ -258,30 +224,25 @@
   text-align: left;
   transition: background-color 0.2s, color 0.2s;
 }
-
 .country-sidebar-btn:hover {
   background-color: #1e293b;
   color: #fff;
 }
-
 .country-sidebar-btn.active {
   background-color: #e50914 !important;
   color: #fff !important;
   font-weight: 600;
 }
-
 /* Media format toggle (Movies vs Series) */
 .sidebar-media-toggle h4 {
   font-size: 0.9rem;
   color: #f8fafc;
   margin-bottom: 8px;
 }
-
 .toggle-buttons {
   display: flex;
   gap: 8px;
 }
-
 .toggle-btn {
   flex: 1;
   padding: 8px;
@@ -292,20 +253,16 @@
   font-size: 0.85rem;
   cursor: pointer;
 }
-
 .toggle-btn.active {
   background-color: #3b82f6;
   border-color: #3b82f6;
   color: #fff;
 }
-
 /* Main Content Column */
 .home-main-content {
   flex: 1;
   min-width: 0; /* Prevents layout breakage on smaller screens */
 }
- 
-
 .home-layout-wrapper {
   display: flex;
   gap: 24px;
@@ -316,9 +273,6 @@
   box-sizing: border-box;
   align-items: flex-start;
 }
-
- 
-
 /* Mobile layout */
 @media (max-width: 850px) {
   .home-layout-wrapper {
@@ -327,18 +281,15 @@
     padding: 12px;
     width: 100%;
   }
-
   .filter-sidebar {
     width: 100%;
     box-sizing: border-box;
     position: static;
   }
-
   .home-main-content {
     width: 100%;
     min-width: 0;
   }
-
   .movies-grid {
     display: grid;
     grid-template-columns: repeat(2, minmax(0, 1fr));
@@ -348,8 +299,6 @@
     box-sizing: border-box;
   }
 }
-
-
 @media screen and (max-width: 600px) {
   .home-layout-wrapper .home-main-content .movies-grid {
     display: grid;
@@ -360,8 +309,6 @@
     box-sizing: border-box;
   }
 }
-
-
 @media screen and (max-width: 600px) {
   .home-container,
   .home-layout-wrapper {
@@ -371,19 +318,16 @@
     margin-left: 0;
     margin-right: 0;
   }
-
   .home-layout-wrapper {
     padding: 8px;
     overflow-x: clip;
   }
-
   .home-main-content {
     width: 100%;
     min-width: 0;
     max-width: 100%;
     box-sizing: border-box;
   }
-
   .movies-grid {
     width: 100%;
     max-width: 100%;
@@ -392,4 +336,4 @@
     padding: 8px 0;
     box-sizing: border-box;
   }
-}
+} 

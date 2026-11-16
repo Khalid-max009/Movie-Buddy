@@ -2,7 +2,6 @@ import { createContext, useContext, useState, useEffect } from "react";
 import { supabase } from "../services/supabaseClient";
 
 const AuthContext = createContext();
-
 const DEFAULT_PREFS = { genres: [], countries: [], onboardingComplete: false };
 
 export const useAuth = () => useContext(AuthContext);
@@ -13,7 +12,6 @@ export const AuthProvider = ({ children }) => {
   const [recommendations, setRecommendations] = useState([]);
   const [loading, setLoading] = useState(true);
 
-  // Load user's profile (preferences & cached recommendations) from Supabase safely
   const loadUserProfile = async (authUser) => {
     if (!authUser) {
       setUser(null);
@@ -43,35 +41,30 @@ export const AuthProvider = ({ children }) => {
       console.warn("Profile fetch warning (using defaults):", err.message);
     }
 
-    // Update all states together so React renders once with the true onboarding status
     setPreferences(resolvedPrefs);
     setRecommendations(resolvedRecs);
     setUser({
       id: authUser.id,
       email: authUser.email,
       name: displayName,
+      isVerified: Boolean(authUser.email_confirmed_at),
     });
   };
 
   useEffect(() => {
     let isMounted = true;
-
-    // Safety timeout: Guarantees loading state clears after 6 seconds max no matter what
     const safetyTimer = setTimeout(() => {
       if (isMounted && loading) {
-        console.warn("Auth initialization safety timeout triggered.");
         setLoading(false);
       }
     }, 6000);
 
-    // Check active session on page load
     supabase.auth.getSession().then(async ({ data: { session } }) => {
       if (!isMounted) return;
       await loadUserProfile(session?.user ?? null);
       if (isMounted) setLoading(false);
     });
 
-    // Listen for auth changes (login, signup, logout)
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       async (_event, session) => {
         if (!isMounted) return;
@@ -109,27 +102,54 @@ export const AuthProvider = ({ children }) => {
       throw new Error("Password must be at least 6 characters long.");
     }
 
-    // 1. Create the user in Supabase Auth (Supabase handles the confirmation email natively)
     const { data, error } = await supabase.auth.signUp({
       email: trimmedEmail,
       password,
       options: {
         data: { full_name: displayName },
-        emailRedirectTo: `${window.location.origin}/onboarding`,
+        emailRedirectTo: `${window.location.origin}/home`,
       },
     });
 
     if (error) {
+      // Catch Supabase's duplicate email error and provide a smart message
+      if (
+        error.message.toLowerCase().includes("already registered") ||
+        error.status === 422 ||
+        error.code === "user_already_exists"
+      ) {
+        throw new Error("An account with this email already exists. Please sign in instead.");
+      }
       throw new Error(error.message);
     }
 
-    // Initialize clean onboarding state for the new user
+    // If Supabase returns an identity with an empty ID or signals it's a duplicate user sign-up
+    if (data?.user && data.user.identities && data.user.identities.length === 0) {
+      throw new Error("An account with this email already exists. Please sign in instead.");
+    }
+
     setPreferences(DEFAULT_PREFS);
     setRecommendations([]);
+
     if (data.user) {
-      setUser({ id: data.user.id, email: trimmedEmail, name: displayName });
+      setUser({
+        id: data.user.id,
+        email: trimmedEmail,
+        name: displayName,
+        isVerified: Boolean(data.user.email_confirmed_at),
+      });
     }
     return data.user;
+  };
+
+  const refreshVerification = async () => {
+    const { data, error } = await supabase.auth.refreshSession();
+    if (error) throw new Error(error.message);
+    if (data?.user) {
+      await loadUserProfile(data.user);
+      return Boolean(data.user.email_confirmed_at);
+    }
+    return false;
   };
 
   const logout = async () => {
@@ -139,7 +159,6 @@ export const AuthProvider = ({ children }) => {
     setRecommendations([]);
   };
 
-  // Saves genres & countries from OnboardingModal directly to Supabase
   const savePreferences = async (newPrefs) => {
     const updatedPrefs = { ...newPrefs, onboardingComplete: true };
     setPreferences(updatedPrefs);
@@ -154,7 +173,6 @@ export const AuthProvider = ({ children }) => {
     }
   };
 
-  // Saves AI / TMDB "Recommended for You" movies to Supabase
   const saveRecommendations = async (recsArray) => {
     setRecommendations(recsArray);
 
@@ -168,7 +186,6 @@ export const AuthProvider = ({ children }) => {
     }
   };
 
-  // Sends a secure password reset email via Supabase Auth
   const resetPassword = async (email) => {
     const { error } = await supabase.auth.resetPasswordForEmail(
       email.trim().toLowerCase(),
@@ -183,6 +200,7 @@ export const AuthProvider = ({ children }) => {
     login,
     signup,
     logout,
+    refreshVerification,
     preferences,
     savePreferences,
     recommendations,
