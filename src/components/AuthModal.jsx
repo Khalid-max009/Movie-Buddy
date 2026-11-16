@@ -9,19 +9,16 @@ export default function AuthModal({ isOpen, onClose }) {
   const [email, setEmail] = useState("");
   const [name, setName] = useState("");
   const [password, setPassword] = useState("");
-  const [newPassword, setNewPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [statusMessage, setStatusMessage] = useState({ text: "", type: "" });
 
-  // Only reset fields when the modal first opens, preserving email during view switches
+  // Reset fields and status messages when modal opens or viewMode changes
   useEffect(() => {
     if (isOpen) {
-      console.log("🔍 AuthModal opened. Resetting fields.");
       setEmail("");
       setName("");
       setPassword("");
-      setNewPassword("");
       setShowPassword(false);
       setIsLoading(false);
       setStatusMessage({ text: "", type: "" });
@@ -29,14 +26,18 @@ export default function AuthModal({ isOpen, onClose }) {
     }
   }, [isOpen]);
 
+  // Clear error messages when toggling between login, signup, and forgot views
+  const handleViewChange = (mode) => {
+    setViewMode(mode);
+    setStatusMessage({ text: "", type: "" });
+    setPassword("");
+  };
+
   if (!isOpen) return null;
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     if (isLoading) return;
-
-    console.log("🚀 handleSubmit triggered. Current viewMode:", viewMode);
-    console.log("📧 Input Email:", email);
 
     setIsLoading(true);
     setStatusMessage({ text: "", type: "" });
@@ -46,39 +47,35 @@ export default function AuthModal({ isOpen, onClose }) {
         if (!email) {
           throw new Error("Please enter your email address.");
         }
-        console.log("🔄 Calling resetPassword...");
         await resetPassword(email);
-        console.log("✅ resetPassword succeeded.");
         
         setStatusMessage({
           text: "Password reset link sent! Check your email inbox.",
           type: "success"
         });
-        
-        setTimeout(() => {
-          setViewMode("login");
-          setNewPassword("");
-          setStatusMessage({ text: "", type: "" });
-        }, 2500);
+        setIsLoading(false);
+        return; // Keep modal open so they can read the success message
 
       } else if (viewMode === "login") {
-        console.log("🔄 Calling login...");
         await login(email, password);
-        console.log("✅ login succeeded.");
         onClose();
 
       } else if (viewMode === "signup") {
-        console.log("🔄 Calling signup with name:", name);
         await signup(email, name, password);
-        console.log("✅ signup succeeded.");
-        onClose();
+        setStatusMessage({
+          text: "Account created! Please check your email for the verification link.",
+          type: "success"
+        });
+        setIsLoading(false);
+        return;
       }
     } catch (err) {
-      console.error("❌ Auth Error caught in handleSubmit:", err.message);
+      console.error("❌ Auth Error:", err.message);
       setStatusMessage({ text: err.message, type: "error" });
     } finally {
-      console.log("🏁 handleSubmit finished. Resetting isLoading to false.");
-      setIsLoading(false);
+      if (viewMode === "login") {
+        setIsLoading(false);
+      }
     }
   };
 
@@ -90,13 +87,13 @@ export default function AuthModal({ isOpen, onClose }) {
         <h2>
           {viewMode === "login" && "Welcome Back to Movie Buddy"}
           {viewMode === "signup" && "Create Your Account"}
-          {viewMode === "forgot" && "Set New Password"}
+          {viewMode === "forgot" && "Reset Password"}
         </h2>
         
         <p className="auth-subtitle">
           {viewMode === "login" && "Sign in to access your custom AI preferences & digests."}
           {viewMode === "signup" && "Sign up to start tracking movies and personalized recommendations."}
-          {viewMode === "forgot" && "Enter your email and type a new password to reset your account."}
+          {viewMode === "forgot" && "Enter your email address and we'll send you a password reset link."}
         </p>
 
         {statusMessage.text && (
@@ -116,7 +113,7 @@ export default function AuthModal({ isOpen, onClose }) {
         )}
 
         <form onSubmit={handleSubmit} className="auth-form" autoComplete="off">
-          {/* --- ANTI-AUTOFILL TRICK: Hidden dummy inputs to capture browser saved data --- */}
+          {/* Hidden dummy inputs to prevent aggressive browser autofill */}
           <input type="text" style={{ display: 'none' }} name="fake-username" autoComplete="username" />
           <input type="password" style={{ display: 'none' }} name="fake-password" autoComplete="current-password" />
 
@@ -146,29 +143,6 @@ export default function AuthModal({ isOpen, onClose }) {
             />
           </div>
 
-          {viewMode === "forgot" && (
-            <div className="input-group">
-              <label>New Password</label>
-              <div className="password-input-wrapper">
-                <input
-                  type={showPassword ? "text" : "password"}
-                  placeholder="At least 6 characters"
-                  value={newPassword}
-                  onChange={(e) => setNewPassword(e.target.value)}
-                  autoComplete="new-password"
-                  required
-                />
-                <button
-                  type="button"
-                  className="toggle-password-btn"
-                  onClick={() => setShowPassword(!showPassword)}
-                >
-                  {showPassword ? "🙈 Hide" : "👁️ Show"}
-                </button>
-              </div>
-            </div>
-          )}
-
           {viewMode !== "forgot" && (
             <div className="input-group">
               <div className="label-row">
@@ -177,7 +151,7 @@ export default function AuthModal({ isOpen, onClose }) {
                   <button 
                     type="button" 
                     className="forgot-link"
-                    onClick={() => setViewMode("forgot")}
+                    onClick={() => handleViewChange("forgot")}
                   >
                     Forgot Password?
                   </button>
@@ -215,7 +189,7 @@ export default function AuthModal({ isOpen, onClose }) {
               <>
                 {viewMode === "login" && "Sign In"}
                 {viewMode === "signup" && "Sign Up"}
-                {viewMode === "forgot" && "Update Password"}
+                {viewMode === "forgot" && "Send Reset Link"}
               </>
             )}
           </button>
@@ -229,7 +203,7 @@ export default function AuthModal({ isOpen, onClose }) {
                 <button 
                   type="button" 
                   className="switch-link" 
-                  onClick={() => setViewMode("signup")}
+                  onClick={() => handleViewChange("signup")}
                 >
                   Sign Up
                 </button>
@@ -242,7 +216,7 @@ export default function AuthModal({ isOpen, onClose }) {
                 <button 
                   type="button" 
                   className="switch-link" 
-                  onClick={() => setViewMode("login")}
+                  onClick={() => handleViewChange("login")}
                 >
                   Sign In
                 </button>
@@ -253,7 +227,7 @@ export default function AuthModal({ isOpen, onClose }) {
               <button 
                 type="button" 
                 className="switch-link" 
-                onClick={() => setViewMode("login")}
+                onClick={() => handleViewChange("login")}
               >
                 ← Back to Sign In
               </button>
