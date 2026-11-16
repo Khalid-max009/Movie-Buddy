@@ -116,6 +116,10 @@ export default function AuthModal({ isOpen, onClose }) {
         )}
 
         <form onSubmit={handleSubmit} className="auth-form" autoComplete="off">
+          {/* --- ANTI-AUTOFILL TRICK: Hidden dummy inputs to capture browser saved data --- */}
+          <input type="text" style={{ display: 'none' }} name="fake-username" autoComplete="username" />
+          <input type="password" style={{ display: 'none' }} name="fake-password" autoComplete="current-password" />
+
           {viewMode === "signup" && (
             <div className="input-group">
               <label>Your Name</label>
@@ -137,7 +141,7 @@ export default function AuthModal({ isOpen, onClose }) {
               placeholder="you@example.com"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
-              autoComplete="username"
+              autoComplete="off"
               required
             />
           </div>
@@ -186,7 +190,7 @@ export default function AuthModal({ isOpen, onClose }) {
                   placeholder="••••••••"
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
-                  autoComplete={viewMode === "login" ? "current-password" : "new-password"}
+                  autoComplete="new-password"
                   required
                 />
                 <button
