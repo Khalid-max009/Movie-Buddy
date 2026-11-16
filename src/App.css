@@ -1,4 +1,4 @@
- /* =========================================
+/* =========================================
    GLOBAL MOBILE UX & OVERFLOW PROTECTION
    ========================================= */
 
@@ -45,7 +45,8 @@ html, body, #root {
 /* 2. Unified 2-Column Mobile Grid Across ALL Pages */
 @media (max-width: 600px) {
   .main-content {
-    padding: 12px 10px 90px 10px !important;
+    /* FIXED: Trimmed giant bottom gap down to 35px */
+    padding: 12px 10px 35px 10px !important;
     width: 100%;
   }
 
@@ -56,8 +57,9 @@ html, body, #root {
   .feed-grid,
   .similar-movies-grid {
     display: grid !important;
-    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
-    gap: 10px !important;
+    /* FIXED: Increased minimum column width from 0 to 140px for a comfortable layout */
+    grid-template-columns: repeat(2, minmax(140px, 1fr)) !important;
+    gap: 12px !important;
     width: 100% !important;
   }
 
