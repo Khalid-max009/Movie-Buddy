@@ -163,15 +163,26 @@ export const MovieProvider = ({ children }) => {
     return watchlist.some((movie) => Number(movie.id) === Number(movieId));
   };
 
-  // Toggle Watched Status inside Watchlist
-  const toggleWatched = (movieId) => {
-    const targetId = Number(movieId);
+  /// Toggle Watched Status inside Watchlist
+  const toggleWatched = (movieOrId) => {
+    const targetId =
+      typeof movieOrId === "object" && movieOrId !== null
+        ? Number(movieOrId.id)
+        : Number(movieOrId);
+
     const targetMovie = watchlist.find((m) => Number(m.id) === targetId);
 
     if (targetMovie) {
       const nextWatchedState = !targetMovie.watched;
+      const displayTitle =
+        targetMovie.title ||
+        targetMovie.name ||
+        targetMovie.original_title ||
+        targetMovie.original_name ||
+        "Movie";
+
       showToast(
-        `Marked "${targetMovie.title}" as ${nextWatchedState ? "Watched" : "Not Watched"}`,
+        `Marked "${displayTitle}" as ${nextWatchedState ? "Watched" : "Not Watched"}`,
         "info"
       );
     }
@@ -190,7 +201,6 @@ export const MovieProvider = ({ children }) => {
       syncToCloudInBackground(favorites, updated);
     }
   };
-
   const value = {
     favorites,
     addToFavorites,
