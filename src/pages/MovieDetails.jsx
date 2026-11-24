@@ -16,6 +16,7 @@ function MovieDetails() {
   const [trailerKey, setTrailerKey] = useState(null);
   const [cast, setCast] = useState([]);
   const [recommendations, setRecommendations] = useState([]);
+  const [watchProviders, setWatchProviders] = useState(null);
   const [loading, setLoading] = useState(true);
 
   const {
@@ -60,9 +61,15 @@ function MovieDetails() {
         const recData = await recRes.json();
         setRecommendations(recData.results ? recData.results.slice(0, 8) : []);
 
+        // 5. Fetch Watch Providers
+        const provRes = await fetch(`${BASE_URL}/${mediaEndpoint}/${id}/watch/providers?api_key=${API_KEY}`);
+        const provData = await provRes.json();
+        setWatchProviders(provData?.results?.NG || provData?.results?.US || null);
+
       } catch (err) {
         console.error("Error fetching details:", err);
         setTrailerKey(null);
+        setWatchProviders(null);
       } finally {
         setLoading(false);
       }
@@ -109,6 +116,11 @@ function MovieDetails() {
       url: `https://play.google.com/store/search?q=${encodedTitle}&c=movies`
     }
   ];
+
+  const streamProviders = watchProviders?.flatrate || [];
+  const rentProviders = watchProviders?.rent || [];
+  const buyProviders = watchProviders?.buy || [];
+  const hasWatchProviders = streamProviders.length > 0 || rentProviders.length > 0 || buyProviders.length > 0;
   
   return (
     <div className="movie-details-container">
@@ -240,6 +252,62 @@ function MovieDetails() {
           Find full videos, streams, or licensed platforms for <strong>{title}</strong>:
         </p>
 
+       {hasWatchProviders && (
+  <div style={{ marginBottom: "18px" }}>
+    {[
+      { label: "Stream", list: streamProviders, prefix: "stream" },
+      { label: "Rent", list: rentProviders, prefix: "rent" },
+      { label: "Buy", list: buyProviders, prefix: "buy" },
+    ].map(
+      ({ label, list, prefix }) =>
+        list.length > 0 && (
+          <div key={prefix} style={{ marginBottom: "12px" }}>
+            <h4 style={{ color: "#cbd5e1", fontSize: "0.82rem", textTransform: "uppercase", letterSpacing: "1px", marginBottom: "8px" }}>
+              {label}
+            </h4>
+            <div style={{ display: "flex", gap: "10px", flexWrap: "wrap", alignItems: "center" }}>
+              {list.map((provider) => {
+                const targetUrl = watchProviders?.link || `https://www.google.com/search?q=${encodeURIComponent(`${title} watch on ${provider.provider_name}`)}`;
+                return (
+                  <a
+                    key={`${prefix}-${provider.provider_id}`}
+                    href={targetUrl}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    title={`Watch ${title} on ${provider.provider_name}`}
+                    style={{
+                      display: "inline-flex",
+                      alignItems: "center",
+                      gap: "8px",
+                      backgroundColor: "#0f172a",
+                      border: "1px solid #475569",
+                      borderRadius: "10px",
+                      padding: "6px 10px",
+                      color: "#f8fafc",
+                      textDecoration: "none",
+                      fontSize: "0.82rem",
+                      fontWeight: "600",
+                    }}
+                  >
+                    <img
+                      src={`https://image.tmdb.org/t/p/w92${provider.logo_path}`}
+                      alt={provider.provider_name}
+                      style={{ width: "32px", height: "32px", borderRadius: "7px", objectFit: "cover" }}
+                    />
+                    <span>{provider.provider_name}</span>
+                  </a>
+                );
+              })}
+            </div>
+          </div>
+        )
+    )}
+
+    <p style={{ color: "#94a3b8", fontSize: "0.78rem", marginTop: "6px" }}>
+      Provider logos &amp; availability via TMDB &amp; JustWatch
+    </p>
+  </div>
+)}
         {/* Streaming Platforms Row */}
         <div>
           <h4 style={{ color: "#cbd5e1", fontSize: "0.82rem", textTransform: "uppercase", letterSpacing: "1px", marginBottom: "10px" }}>

@@ -12,6 +12,7 @@ export default function Team() {
 
   // Profile Editor State
   const [editingProfile, setEditingProfile] = useState(false);
+  const [uploadingAvatar, setUploadingAvatar] = useState(false);
   const [profileForm, setProfileForm] = useState({
     full_name: "",
     role_title: "",
@@ -20,6 +21,7 @@ export default function Team() {
     twitter: "",
     linkedin: "",
     instagram: "",
+    youtube: "",
     website: ""
   });
 
@@ -73,6 +75,7 @@ export default function Team() {
             twitter: mine.socials?.twitter || "",
             linkedin: mine.socials?.linkedin || "",
             instagram: mine.socials?.instagram || "",
+            youtube: mine.socials?.youtube || "",
             website: mine.socials?.website || ""
           });
         }
@@ -91,6 +94,38 @@ export default function Team() {
     }
   };
 
+  const handleAvatarFileChange = async (e) => {
+    const file = e.target.files?.[0];
+    if (!file || !user || !isTeamStaff) return;
+
+    const ext = file.name.split(".").pop()?.toLowerCase() || "jpg";
+    const filePath = `${user.id}/avatar.${ext}`;
+
+    setUploadingAvatar(true);
+    setStatusMsg("");
+    try {
+      const { error: uploadError } = await supabase.storage
+        .from("avatars")
+        .upload(filePath, file, { upsert: true });
+
+      if (uploadError) throw uploadError;
+
+      const { data } = supabase.storage
+        .from("avatars")
+        .getPublicUrl(filePath);
+
+      setProfileForm((prev) => ({
+        ...prev,
+        avatar_url: `${data.publicUrl}?t=${Date.now()}`
+      }));
+      setStatusMsg("Photo uploaded! Click 'Save Public Profile' to apply.");
+    } catch (err) {
+      setStatusMsg(`Upload error: ${err.message}`);
+    } finally {
+      setUploadingAvatar(false);
+    }
+  };
+
   const handleSaveProfile = async (e) => {
     e.preventDefault();
     if (!user || !isTeamStaff) return;
@@ -102,13 +137,14 @@ export default function Team() {
       full_name: profileForm.full_name.trim(),
       role_title: profileForm.role_title.trim(),
       bio: profileForm.bio.trim(),
-      avatar_url: profileForm.avatar_url.trim(),
+      avatar_url: (profileForm.avatar_url || "").trim(),
       display_order: userRole === "admin" ? 1 : 2,
       socials: {
-        twitter: profileForm.twitter.trim(),
-        linkedin: profileForm.linkedin.trim(),
-        instagram: profileForm.instagram.trim(),
-        website: profileForm.website.trim()
+        twitter: (profileForm.twitter || "").trim(),
+        linkedin: (profileForm.linkedin || "").trim(),
+        instagram: (profileForm.instagram || "").trim(),
+        youtube: (profileForm.youtube || "").trim(),
+        website: (profileForm.website || "").trim()
       },
       updated_at: new Date().toISOString()
     };
@@ -162,6 +198,14 @@ export default function Team() {
     }
   };
 
+  if (loading) {
+    return (
+      <div className="team-page-container">
+        <p className="team-muted">Loading team &amp; updates...</p>
+      </div>
+    );
+  }
+
   return (
     <div className="team-page-container">
       <header className="team-hero">
@@ -201,12 +245,31 @@ export default function Team() {
                 onChange={(e) => setProfileForm({ ...profileForm, role_title: e.target.value })}
                 required
               />
-              <input
-                type="url"
-                placeholder="Avatar Image URL (https://...)"
-                value={profileForm.avatar_url}
-                onChange={(e) => setProfileForm({ ...profileForm, avatar_url: e.target.value })}
-              />
+              <div className="cms-file-upload-box">
+                <label style={{ display: "block", fontSize: "0.85rem", marginBottom: "6px" }}>
+                  Upload Profile Photo (Image File)
+                </label>
+                <input
+                  type="file"
+                  accept="image/*"
+                  onChange={handleAvatarFileChange}
+                  disabled={uploadingAvatar}
+                />
+                {uploadingAvatar && <p className="team-muted">Uploading photo...</p>}
+                {profileForm.avatar_url && (
+                  <img
+                    src={profileForm.avatar_url}
+                    alt="Avatar preview"
+                    style={{
+                      width: "64px",
+                      height: "64px",
+                      borderRadius: "50%",
+                      objectFit: "cover",
+                      marginTop: "8px"
+                    }}
+                  />
+                )}
+              </div>
               <input
                 type="url"
                 placeholder="X / Twitter URL (optional)"
@@ -232,7 +295,7 @@ export default function Team() {
                 onChange={(e) => setProfileForm({ ...profileForm, bio: e.target.value })}
                 required
               />
-              <button type="submit" className="cms-primary-btn" disabled={saving}>
+              <button type="submit" className="cms-primary-btn" disabled={saving || uploadingAvatar}>
                 {saving ? "Saving..." : "Save Public Profile"}
               </button>
             </form>
@@ -282,9 +345,7 @@ export default function Team() {
 
       {/* PUBLIC TEAM CARDS */}
       <section className="team-cards-grid">
-        {loading ? (
-          <p className="team-muted">Loading team profiles...</p>
-        ) : members.length === 0 ? (
+        {members.length === 0 ? (
           <p className="team-muted">Team profiles coming soon.</p>
         ) : (
           members.map((member) => (
@@ -327,7 +388,7 @@ export default function Team() {
 
       {/* PUBLIC UPDATES & FEATURE ALERTS FEED */}
       <section className="team-updates-section">
-        <h2>Latest Updates & Community Board</h2>
+        <h2>Latest Updates &amp; Community Board</h2>
         {updates.length === 0 ? (
           <p className="team-muted">No announcements posted yet.</p>
         ) : (

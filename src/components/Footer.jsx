@@ -16,7 +16,7 @@ export default function Footer() {
           </div>
 
           <nav className="mb-footer-links" aria-label="Footer navigation">
-            <Link to="/">Home</Link>
+            <Link to="/home">Home</Link>
             <Link to="/watchlist">Watchlist</Link>
             <Link to="/favorites">Favorites</Link>
             <Link to="/team">Team &amp; Alerts</Link>
