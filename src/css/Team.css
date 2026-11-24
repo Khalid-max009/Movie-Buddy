@@ -1,0 +1,337 @@
+.team-page-container,
+.team-page-container * {
+  box-sizing: border-box;
+}
+
+.team-page-container {
+  width: 100%;
+  max-width: 1050px;
+  margin: 0 auto;
+  padding: 1.5rem 1rem 5rem;
+  color: #f8fafc;
+  overflow-x: hidden;
+}
+
+.team-hero {
+  text-align: center;
+  margin-bottom: 1.75rem;
+}
+
+.team-hero h1 {
+  font-size: clamp(1.6rem, 5vw, 2.1rem);
+  margin-bottom: 0.4rem;
+  line-height: 1.2;
+}
+
+.team-hero p {
+  color: #94a3b8;
+  font-size: 0.95rem;
+  line-height: 1.45;
+}
+
+.cms-toast {
+  background: rgba(22, 163, 74, 0.2);
+  border: 1px solid #22c55e;
+  color: #86efac;
+  padding: 0.75rem 1rem;
+  border-radius: 10px;
+  margin-bottom: 1.25rem;
+  text-align: center;
+  font-size: 0.9rem;
+  font-weight: 600;
+}
+
+/* CMS Admin Panel */
+.cms-admin-panel {
+  background: #0f172a;
+  border: 1px solid #334155;
+  border-radius: 14px;
+  padding: 1.15rem;
+  margin-bottom: 2rem;
+}
+
+.cms-panel-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+  margin-bottom: 1rem;
+}
+
+.cms-panel-header h2 {
+  font-size: 1.05rem;
+  color: #f8fafc;
+  margin: 0;
+}
+
+.cms-toggle-btn {
+  background: #1e293b;
+  color: #e2e8f0;
+  border: 1px solid #475569;
+  padding: 0.6rem 1rem;
+  min-height: 42px;
+  border-radius: 8px;
+  cursor: pointer;
+  font-size: 0.88rem;
+  font-weight: 600;
+}
+
+.cms-form-grid,
+.cms-post-form {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  margin-top: 1rem;
+}
+
+.cms-post-form h3 {
+  font-size: 1rem;
+  margin: 0.25rem 0;
+}
+
+.cms-row {
+  display: flex;
+  gap: 0.75rem;
+  flex-wrap: wrap;
+  width: 100%;
+}
+
+.cms-row select,
+.cms-row input {
+  flex: 1 1 220px;
+  min-width: 0;
+}
+
+/* 16px font-size prevents Android Chrome from auto-zooming on focus */
+.cms-admin-panel input,
+.cms-admin-panel select,
+.cms-admin-panel textarea {
+  width: 100%;
+  background: #1e293b;
+  border: 1px solid #334155;
+  color: #f8fafc;
+  padding: 0.75rem 0.9rem;
+  border-radius: 10px;
+  font-size: 16px;
+  font-family: inherit;
+  min-height: 44px;
+}
+
+.cms-admin-panel textarea {
+  resize: vertical;
+  min-height: 90px;
+}
+
+.cms-primary-btn {
+  background: #dc2626;
+  color: #fff;
+  border: none;
+  padding: 0.75rem 1.35rem;
+  min-height: 44px;
+  border-radius: 10px;
+  font-size: 0.95rem;
+  font-weight: 600;
+  cursor: pointer;
+  align-self: flex-start;
+}
+
+.cms-primary-btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+/* Public Team Cards */
+.team-cards-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+  gap: 1.25rem;
+  margin-bottom: 2.5rem;
+}
+
+.team-member-card {
+  background: #0f172a;
+  border: 1px solid #1e293b;
+  border-radius: 16px;
+  padding: 1.5rem 1.25rem;
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  overflow-wrap: anywhere;
+}
+
+.team-avatar {
+  width: 88px;
+  height: 88px;
+  border-radius: 50%;
+  object-fit: cover;
+  border: 3px solid #dc2626;
+  margin-bottom: 0.85rem;
+}
+
+.team-member-card h3 {
+  font-size: 1.18rem;
+  margin: 0 0 0.35rem;
+}
+
+.team-role-badge {
+  background: rgba(220, 38, 38, 0.15);
+  color: #f87171;
+  border: 1px solid rgba(220, 38, 38, 0.35);
+  font-size: 0.76rem;
+  font-weight: 600;
+  padding: 0.25rem 0.75rem;
+  border-radius: 999px;
+  margin-bottom: 0.85rem;
+}
+
+.team-bio {
+  color: #cbd5e1;
+  font-size: 0.9rem;
+  line-height: 1.55;
+  margin: 0 0 1.1rem;
+}
+
+.team-socials {
+  display: flex;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+  justify-content: center;
+  margin-top: auto;
+  width: 100%;
+}
+
+.team-socials a {
+  background: #1e293b;
+  color: #e2e8f0;
+  text-decoration: none;
+  font-size: 0.82rem;
+  padding: 0.5rem 0.85rem;
+  min-height: 38px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 8px;
+  border: 1px solid #334155;
+}
+
+.team-socials a:hover,
+.team-socials a:active {
+  border-color: #dc2626;
+  color: #fff;
+}
+
+/* Updates Feed */
+.team-updates-section h2 {
+  font-size: 1.25rem;
+  margin-bottom: 1rem;
+}
+
+.updates-feed {
+  display: flex;
+  flex-direction: column;
+  gap: 0.9rem;
+}
+
+.update-card {
+  background: #0f172a;
+  border: 1px solid #1e293b;
+  border-radius: 14px;
+  padding: 1.15rem;
+  overflow-wrap: anywhere;
+}
+
+.update-meta {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  flex-wrap: wrap;
+  font-size: 0.78rem;
+  color: #94a3b8;
+  margin-bottom: 0.55rem;
+}
+
+.update-tag {
+  background: #1e293b;
+  color: #38bdf8;
+  padding: 0.2rem 0.6rem;
+  border-radius: 6px;
+  font-weight: 600;
+}
+
+.update-card h3 {
+  font-size: 1.05rem;
+  margin: 0 0 0.4rem;
+  line-height: 1.35;
+}
+
+.update-card p {
+  color: #cbd5e1;
+  font-size: 0.9rem;
+  line-height: 1.5;
+  margin: 0;
+  white-space: pre-wrap;
+}
+
+.update-link {
+  display: inline-block;
+  margin-top: 0.75rem;
+  color: #f87171;
+  font-weight: 600;
+  text-decoration: none;
+  font-size: 0.88rem;
+}
+
+.delete-post-btn {
+  margin-left: auto;
+  background: transparent;
+  border: 1px solid #475569;
+  color: #94a3b8;
+  font-size: 0.75rem;
+  padding: 0.3rem 0.65rem;
+  min-height: 32px;
+  border-radius: 6px;
+  cursor: pointer;
+}
+
+.team-muted {
+  color: #64748b;
+  font-size: 0.9rem;
+}
+
+/* Android & Small Mobile Breakpoint (360px - 600px) */
+@media (max-width: 600px) {
+  .team-page-container {
+    padding: 1.15rem 0.75rem 5.5rem;
+  }
+
+  .cms-admin-panel {
+    padding: 1rem 0.85rem;
+  }
+
+  .cms-toggle-btn,
+  .cms-primary-btn {
+    width: 100%;
+    text-align: center;
+  }
+
+  .cms-row {
+    flex-direction: column;
+    gap: 0.65rem;
+  }
+
+  .cms-row select,
+  .cms-row input {
+    flex: 1 1 auto;
+    width: 100%;
+  }
+
+  .team-cards-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .team-socials a {
+    flex: 1 1 calc(50% - 0.5rem);
+  }
+}

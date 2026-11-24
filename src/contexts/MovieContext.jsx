@@ -74,6 +74,17 @@ export const MovieProvider = ({ children }) => {
     }
   }, [watchlist]);
 
+  const normalizeMediaItem = (item) => ({
+  ...item,
+  title:
+    item.title ||
+    item.name ||
+    item.original_title ||
+    item.original_name ||
+    "Untitled",
+  media_type: item.media_type || (item.first_air_date || item.name ? "tv" : "movie"),
+});
+
   // Optional background cloud sync (Non-blocking, safe from infinite hangs)
   const syncToCloudInBackground = async (updatedFavorites, updatedWatchlist) => {
     try {
@@ -94,19 +105,19 @@ export const MovieProvider = ({ children }) => {
   };
 
   // Favorite Handlers
-  const addToFavorites = (movie) => {
-    let updated;
-    setFavorites((prev) => {
-      if (prev.some((m) => Number(m.id) === Number(movie.id))) return prev;
-      updated = [...prev, movie];
-      return updated;
-    });
-    if (updated) {
-      syncToCloudInBackground(updated, watchlist);
-      showToast(`Added "${movie.title}" to Favorites!`, "success");
-    }
-  };
-
+const addToFavorites = (movie) => {
+  const normalized = normalizeMediaItem(movie);
+  let updated;
+  setFavorites((prev) => {
+    if (prev.some((m) => Number(m.id) === Number(normalized.id))) return prev;
+    updated = [...prev, normalized];
+    return updated;
+  });
+  if (updated) {
+    syncToCloudInBackground(updated, watchlist);
+    showToast(`Added "${normalized.title}" to Favorites!`, "success");
+  }
+};
   const removeFromFavorites = (movieId) => {
     const targetId = Number(movieId);
     const movieToRemove = favorites.find((movie) => Number(movie.id) === targetId);
@@ -130,17 +141,18 @@ export const MovieProvider = ({ children }) => {
 
   // Watchlist Handlers
   const addToWatchlist = (movie) => {
-    let updated;
-    setWatchlist((prev) => {
-      if (prev.some((m) => Number(m.id) === Number(movie.id))) return prev;
-      updated = [...prev, { ...movie, watched: false }];
-      return updated;
-    });
-    if (updated) {
-      syncToCloudInBackground(favorites, updated);
-      showToast(`Added "${movie.title}" to Watchlist!`, "success");
-    }
-  };
+  const normalized = normalizeMediaItem(movie);
+  let updated;
+  setWatchlist((prev) => {
+    if (prev.some((m) => Number(m.id) === Number(normalized.id))) return prev;
+    updated = [...prev, { ...normalized, watched: false }];
+    return updated;
+  });
+  if (updated) {
+    syncToCloudInBackground(favorites, updated);
+    showToast(`Added "${normalized.title}" to Watchlist!`, "success");
+  }
+};
 
   const removeFromWatchlist = (movieId) => {
     const targetId = Number(movieId);

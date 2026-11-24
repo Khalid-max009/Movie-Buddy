@@ -1,6 +1,8 @@
 import { useState, useEffect, useRef } from "react";
 import { Link } from "react-router-dom";
 import { getAIRecommendations } from "../services/aiParserService";
+import { useMovieContext } from "../contexts/MovieContext";
+import { useAuth } from "../contexts/AuthContext";
 import "../css/AIAssistant.css";
 
 const API_KEY = import.meta.env.VITE_TMDB_API_KEY;
@@ -32,27 +34,43 @@ const getDynamicChips = (messageHistory) => {
 
 const normalize = (s = "") => s.toLowerCase().replace(/[^a-z0-9]/g, "");
 
-const findVerifiedMatch = (results, targetTitle) => {
+const findVerifiedMatch = (results, targetTitle, expectedYear, mediaType) => {
   if (!results?.length) return null;
   const target = normalize(targetTitle);
   if (!target) return null;
 
   const candidates = results.filter((item) => item.poster_path);
+  if (!candidates.length) return null;
 
-  let best = candidates.find((item) => {
+  // 1. Exact title + exact year match
+  if (expectedYear) {
+    const exactWithYear = candidates.find((item) => {
+      const t = normalize(item.title || item.name || "");
+      const year = Number((item.release_date || item.first_air_date || "").slice(0, 4));
+      return t === target && Math.abs(year - Number(expectedYear)) <= 1;
+    });
+    if (exactWithYear) return { ...exactWithYear, media_type: mediaType || exactWithYear.media_type };
+  }
+
+  // 2. Exact title match
+  const exactTitle = candidates.find((item) => {
     const t = normalize(item.title || item.name || "");
     return t === target;
   });
-  if (best) return best;
+  if (exactTitle) return { ...exactTitle, media_type: mediaType || exactTitle.media_type };
 
-  best = candidates.find((item) => {
+  // 3. Partial title match
+  const partial = candidates.find((item) => {
     const t = normalize(item.title || item.name || "");
     return t && (t.includes(target) || target.includes(t));
   });
-  return best || null;
+  return partial ? { ...partial, media_type: mediaType || partial.media_type } : null;
 };
 
 export default function AIAssistant() {
+  const { favorites, watchlist } = useMovieContext();
+  const { preferences } = useAuth();
+
   const [isOpen, setIsOpen] = useState(false);
   const [prompt, setPrompt] = useState("");
   const [loading, setLoading] = useState(false);
@@ -66,7 +84,7 @@ export default function AIAssistant() {
         : [
             {
               sender: "ai",
-              text: "Hey! Ask me anything in natural language—search by actor, complex plot, genre, or country!",
+              text: "Hey! Describe any plot, mood, actor, or list of rules (even a whole paragraph!) and I'll find the exact matches.",
               movies: []
             }
           ];
@@ -74,7 +92,7 @@ export default function AIAssistant() {
       return [
         {
           sender: "ai",
-          text: "Hey! Ask me anything in natural language—search by actor, complex plot, genre, or country!",
+          text: "Hey! Describe any plot, mood, actor, or list of rules (even a whole paragraph!) and I'll find the exact matches.",
           movies: []
         }
       ];
@@ -106,23 +124,48 @@ export default function AIAssistant() {
       return;
     }
 
-    setMessages((prev) => [...prev, { sender: "user", text: trimmed, movies: [] }]);
+    const updatedHistory = [...messages, { sender: "user", text: trimmed, movies: [] }];
+    setMessages(updatedHistory);
     setPrompt("");
     if (textareaRef.current) textareaRef.current.style.height = "auto";
     setLoading(true);
 
     try {
-      const aiResponse = await getAIRecommendations(trimmed);
+      const aiResponse = await getAIRecommendations(trimmed, messages, {
+        favorites,
+        watchlist,
+        preferences
+      });
+
       let fetchedMatches = [];
 
-      if (aiResponse.recommendedTitles?.length > 0) {
-        const titlePromises = aiResponse.recommendedTitles.map(async (title) => {
+      if (aiResponse.recommendations?.length > 0) {
+        const titlePromises = aiResponse.recommendations.map(async (rec) => {
           try {
-            const res = await fetch(
-              `${BASE_URL}/search/multi?api_key=${API_KEY}&query=${encodeURIComponent(title)}`
+            const endpoint = rec.media_type === "tv" ? "tv" : "movie";
+            const yearParam = rec.year
+              ? endpoint === "tv"
+                ? `&first_air_date_year=${rec.year}`
+                : `&primary_release_year=${rec.year}`
+              : "";
+
+            // First try targeted search with media_type + year
+            let res = await fetch(
+              `${BASE_URL}/search/${endpoint}?api_key=${API_KEY}&query=${encodeURIComponent(rec.title)}${yearParam}`
             );
-            const data = await res.json();
-            return findVerifiedMatch(data.results, title);
+            let data = await res.json();
+            let match = findVerifiedMatch(data.results, rec.title, rec.year, endpoint);
+
+            // Fallback to multi-search without year filter if year was slightly off
+            if (!match) {
+              res = await fetch(
+                `${BASE_URL}/search/multi?api_key=${API_KEY}&query=${encodeURIComponent(rec.title)}`
+              );
+              data = await res.json();
+              match = findVerifiedMatch(data.results, rec.title, rec.year, endpoint);
+            }
+
+            return match;
           } catch {
             return null;
           }
@@ -131,16 +174,16 @@ export default function AIAssistant() {
         const resolved = await Promise.all(titlePromises);
         const uniqueMap = new Map();
         resolved.filter(Boolean).forEach((item) => {
-          if (!uniqueMap.has(item.id)) uniqueMap.set(item.id, item);
+          const key = `${item.media_type || "media"}-${item.id}`;
+          if (!uniqueMap.has(key)) uniqueMap.set(key, item);
         });
         fetchedMatches = Array.from(uniqueMap.values()).slice(0, 5);
       }
 
-      if (fetchedMatches.length === 0) {
-        const keywordQuery = aiResponse.cleanKeywords || trimmed;
+      if (fetchedMatches.length === 0 && aiResponse.cleanKeywords) {
         try {
           const multiRes = await fetch(
-            `${BASE_URL}/search/multi?api_key=${API_KEY}&query=${encodeURIComponent(keywordQuery)}`
+            `${BASE_URL}/search/multi?api_key=${API_KEY}&query=${encodeURIComponent(aiResponse.cleanKeywords)}`
           );
           const multiData = await multiRes.json();
           if (multiData.results?.length) {
@@ -154,7 +197,8 @@ export default function AIAssistant() {
       }
 
       if (fetchedMatches.length > 0) {
-        const intro = aiResponse.conversationalIntro || `Here are top picks for **"${trimmed}"**:`;
+        const intro =
+          aiResponse.conversationalIntro || `Here are top picks for your request:`;
         cacheRef.current.set(trimmed, { intro, movies: fetchedMatches });
         setMessages((prev) => [
           ...prev,
@@ -165,7 +209,9 @@ export default function AIAssistant() {
           ...prev,
           {
             sender: "ai",
-            text: `I couldn't find matches for "${trimmed}". Try asking for another actor, genre, or plot!`,
+            text:
+              aiResponse.conversationalIntro ||
+              `I couldn't find exact TMDB matches for that description. Try relaxing one of your filters or naming a similar movie!`,
             movies: []
           }
         ]);
@@ -200,7 +246,7 @@ export default function AIAssistant() {
     const defaultMsg = [
       {
         sender: "ai",
-        text: "Chat cleared! What are we looking for next?",
+        text: "Chat cleared! Describe any plot, mood, or combination of rules and I'll find matches.",
         movies: []
       }
     ];
@@ -211,7 +257,7 @@ export default function AIAssistant() {
   const handleTextareaChange = (e) => {
     setPrompt(e.target.value);
     e.target.style.height = "auto";
-    e.target.style.height = `${Math.min(e.target.scrollHeight, 110)}px`;
+    e.target.style.height = `${Math.min(e.target.scrollHeight, 150)}px`;
   };
 
   const handleKeyDown = (e) => {
@@ -250,7 +296,7 @@ export default function AIAssistant() {
               <span className="ai-avatar">🤖</span>
               <div>
                 <h3>Movie Buddy AI</h3>
-                <p>Powered by Groq</p>
+                <p>Context-Aware Cinema Engine</p>
               </div>
             </div>
             <div style={{ display: "flex", gap: "6px", alignItems: "center" }}>
@@ -320,7 +366,8 @@ export default function AIAssistant() {
                       msg.sender === "user" ? "16px 16px 0 16px" : "16px 16px 16px 0",
                     padding: "10px 14px",
                     fontSize: "0.9rem",
-                    lineHeight: "1.4"
+                    lineHeight: "1.4",
+                    whiteSpace: "pre-wrap"
                   }}
                   dangerouslySetInnerHTML={{
                     __html: msg.text.replace(/\*\*(.*?)\*\*/g, "<strong>$1</strong>")
@@ -341,7 +388,8 @@ export default function AIAssistant() {
                       return (
                         <Link
                           to={`/${mediaTypePath}/${item.id}`}
-                          key={item.id}
+                          state={{ mediaType: mediaTypePath }}
+                          key={`${mediaTypePath}-${item.id}`}
                           className="ai-mini-card-link"
                           onClick={() => setIsOpen(false)}
                         >
@@ -380,7 +428,7 @@ export default function AIAssistant() {
             {loading && (
               <div className="ai-loading-spinner">
                 <div className="spinner-small"></div>
-                <span>AI is searching the web and verifying...</span>
+                <span>Analyzing your request & verifying titles...</span>
               </div>
             )}
             <div ref={chatEndRef} />
@@ -427,7 +475,7 @@ export default function AIAssistant() {
               display: "flex",
               gap: "8px",
               padding: "10px",
-              alignItems: "center",
+              alignItems: "flex-end",
               background: "#0f172a",
               borderTop: "1px solid #1e293b",
               flexShrink: 0
@@ -436,7 +484,7 @@ export default function AIAssistant() {
             <textarea
               ref={textareaRef}
               rows={1}
-              placeholder="Ask AI for movies or plots..."
+              placeholder="Describe a plot, vibe, or rules (even a whole paragraph)..."
               value={prompt}
               onChange={handleTextareaChange}
               onKeyDown={handleKeyDown}
@@ -444,10 +492,10 @@ export default function AIAssistant() {
               style={{
                 flex: 1,
                 resize: "none",
-                overflowY: "hidden",
+                overflowY: "auto",
                 padding: "10px 14px",
                 minHeight: "44px",
-                maxHeight: "120px",
+                maxHeight: "150px",
                 boxSizing: "border-box",
                 whiteSpace: "pre-wrap",
                 wordBreak: "break-word"

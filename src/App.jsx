@@ -14,6 +14,8 @@ import { AuthProvider, useAuth } from "./contexts/AuthContext";
 import DailyFeed from "./pages/DailyFeed";
 import { supabase } from "./services/supabaseClient";
 import './App.css'
+import Team from "./pages/Team";
+import Footer from "./components/Footer";
 
 function VerifyEmailGate() {
   const { user, logout, refreshVerification } = useAuth();
@@ -231,13 +233,16 @@ function AppContent() {
           <Route path="/home" element={<Home />} />
           <Route path="/favorites" element={<Favourites />} />
           <Route path="/watchlist" element={<Watchlist />} />
+          
           <Route path="/movie/:id" element={<MovieDetails />} />
+          <Route path="/team" element={<Team />} />
           <Route path="/tv/:id" element={<MovieDetails />} />
 
           <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>
         <Toast />
       </main>
+      <Footer/>
 
       {/* Onboarding trigger: When completed, explicitly navigates to /home */}
       <OnboardingModal
